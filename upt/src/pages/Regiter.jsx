@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import ButtonRC from './components/ButtonRC/ButtonRC';
-import InputRC from './components/InputRC/InputRC';
-import LabelRC from './components/LabelRC/LabelRC';
-import './style/register.css'; // Подключаем стили
+import ButtonRC from "../components/common/ButtonRC";
+import InputRC from "../components/common/InputRC";
+import LabelRC from "../components/common/LabelRC";
+import TitleRC from "../components/common/TitleRC"; // Импортируем TitleRC
+import './style/register.css';
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -21,18 +22,14 @@ const RegistrationPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Данные формы:', formData); // Пока просто выводим данные в консоль
-  };
-
-  const handleLoginRedirect = () => {
-    console.log('Переход на страницу входа');
-    // Здесь можно добавить логику перехода на страницу входа
+    console.log('Данные формы:', formData); // Выводим данные в консоль
   };
 
   return (
     <div className="register-page">
-      <form onSubmit={handleSubmit} className="register-form">
-        <h2 className="register-title">Регистрация</h2>
+      <form className="register-form" onSubmit={handleSubmit}>
+        {/* Используем TitleRC вместо h2 */}
+        <TitleRC text="Регистрация" className="register-title" />
 
         {/* Поле для почты */}
         <LabelRC htmlFor="email" className="register-label">
@@ -84,7 +81,6 @@ const RegistrationPage = () => {
         {/* Кнопка "Войти" */}
         <ButtonRC
           type="button"
-          onClick={handleLoginRedirect}
           className="register-secondary-button"
         >
           Войти

@@ -1,64 +1,20 @@
-/* Общие стили для страницы */
+/* Стили для страницы регистрации */
 .register-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-  }
-  
-  /* Стили для формы */
-  .register-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-  }
-  
-  /* Стили для заголовка */
-  .register-title {
-    margin: 0 0 16px 0;
-    text-align: center;
-    color: #333;
-  }
-  
-  /* Стили для меток */
-  .register-label {
-    font-size: 14px;
-    color: #333;
-  }
-  
-  /* Стили для полей ввода */
-  .register-input {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    outline: none;
-  }
-  
-  /* Стили для главной кнопки */
-  .register-primary-button {
-    padding: 10px;
-    font-size: 16px;
-    background-color: #228B22; /* Зеленый */
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  /* Стили для второстепенной кнопки */
-  .register-secondary-button {
-    padding: 10px;
-    font-size: 16px;
-    background-color: #D2B48C; /* Бежевый */
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+/* Стили для формы регистрации */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}

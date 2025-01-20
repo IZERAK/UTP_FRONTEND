@@ -1,0 +1,8 @@
+Задний фон (Background): #F0EAD6
+Рабочая область (Main Workspace): #E2F0CB
+Главный текст (Primary Text): #3D3D3D
+Второстепенный текст (Secondary Text): #6B6B6B
+Главная кнопка (Primary Button): #228B22
+Второстепенная кнопка (Secondary Button): #D2B48C
+Нижняя линия для поля ввода (Input Field Underline): #8F9779
+Подсвечивание поля ввода при наведении (Input Field Hover): #9ACD32

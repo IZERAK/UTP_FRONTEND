@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #F0EAD6;
+    color: #3D3D3D;
+  }
+  
+  a {
+    color: #228B22;
+    text-decoration: none;
+  }
+  
+  button {
+    background-color: #228B22;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+  }

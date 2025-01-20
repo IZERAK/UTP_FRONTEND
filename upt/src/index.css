@@ -1,21 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');body {
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+/* Основные стили для body */
+body {
     margin: 0;
     padding: 0;
-    background-color: #F0EAD6;
-    color: #3D3D3D;
-    font-family: 'Ubuntu', sans-serif;
-
+    font-family: 'Arial', sans-serif;
+    background-color: #F0EAD6; /* Задний фон */
+    color: #3D3D3D; /* Главный текст */
   }
   
-  a {
-    color: #228B22;
-    text-decoration: none;
+  /* Контейнер для основного контента */
+  .main-workspace {
+    background-color: #E2F0CB; /* Рабочая область */
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  button {
-    background-color: #228B22;
+  /* Стили для текста */
+  .primary-text {
+    color: #3D3D3D; /* Главный текст */
+    font-size: 1.2rem;
+    line-height: 1.6;
+  }
+  
+  .secondary-text {
+    color: #6B6B6B; /* Второстепенный текст */
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  
+  /* Стили для кнопок */
+  .primary-button {
+    background-color: #228B22; /* Главная кнопка */
     color: white;
     border: none;
     padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .primary-button:hover {
+    background-color: #1E7A1E; /* Темнее при наведении */
+  }
+  
+  .secondary-button {
+    background-color: #D2B48C; /* Второстепенная кнопка */
+    color: #3D3D3D;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .secondary-button:hover {
+    background-color: #C0A57B; /* Темнее при наведении */
+  }
+  
+  /* Стили для полей ввода */
+  .input-field {
+    border: none;
+    border-bottom: 2px solid #8F9779; /* Нижняя линия для поля ввода */
+    background-color: transparent;
+    padding: 10px;
+    font-size: 1rem;
+    color: #3D3D3D;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  .input-field:hover {
+    border-bottom-color: #9ACD32; /* Подсвечивание при наведении */
+  }
+  
+  .input-field:focus {
+    border-bottom-color: #9ACD32; /* Подсвечивание при фокусе */
   }

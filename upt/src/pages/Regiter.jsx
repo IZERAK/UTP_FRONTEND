@@ -1,90 +1,84 @@
-import React, { useState } from 'react';
-import ButtonRC from "../components/common/ButtonRC";
-import InputRC from "../components/common/InputRC";
-import LabelRC from "../components/common/LabelRC";
-import TitleRC from "../components/common/TitleRC"; // Импортируем TitleRC
-import './style/register.css';
+import React, { useState } from "react";
+import ButtonRC from "../components/ButtonRC"
+import InputRC from "../components/InputRC"
+import LabelRC from "../components/LabelRC"
+import TitleRC from "../components/TitleRC"
+import "../assets/styles/register.css"
 
 const RegistrationPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  // Состояния для полей ввода
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  // Обработчики изменений полей ввода
+  const handleEmailChange = (e) => setEmail(e.target.value);
+  const handlePasswordChange = (e) => setPassword(e.target.value);
+  const handleConfirmPasswordChange = (e) => setConfirmPassword(e.target.value);
+
+  // Обработчик кнопки "Создать аккаунт"
+  const handleCreateAccount = () => {
+    if (password !== confirmPassword) {
+      alert("Пароли не совпадают!");
+      return;
+    }
+    // Здесь можно добавить логику для регистрации
+    console.log("Регистрация:", { email, password });
+    alert("Аккаунт успешно создан!");
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Данные формы:', formData); // Выводим данные в консоль
+  // Обработчик кнопки "Войти"
+  const handleLogin = () => {
+    // Здесь можно добавить логику для перехода на страницу входа
+    console.log("Переход на страницу входа");
   };
 
   return (
-    <div className="register-page">
-      <form className="register-form" onSubmit={handleSubmit}>
-        {/* Используем TitleRC вместо h2 */}
-        <TitleRC text="Регистрация" className="register-title" />
+    <div className="registration-container">
+      {/* Заголовок */}
+      <TitleRC text="Регистрация" className="registration-title" />
 
-        {/* Поле для почты */}
-        <LabelRC htmlFor="email" className="register-label">
-          Почта (ваш логин):
-        </LabelRC>
+      {/* Форма регистрации */}
+      <form className="registration-form">
+        {/* Поле для ввода почты */}
+        <LabelRC htmlFor="email">Почта (ваш логин)</LabelRC>
         <InputRC
-          id="email"
           name="email"
           type="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Введите вашу почту"
-          className="register-input"
+          value={email}
+          onChange={handleEmailChange}
+          placeholder="Введите почту"
         />
 
-        {/* Поле для пароля */}
-        <LabelRC htmlFor="password" className="register-label">
-          Пароль:
-        </LabelRC>
+        {/* Поле для ввода пароля */}
+        <LabelRC htmlFor="password">Пароль</LabelRC>
         <InputRC
-          id="password"
           name="password"
           type="password"
-          value={formData.password}
-          onChange={handleChange}
+          value={password}
+          onChange={handlePasswordChange}
           placeholder="Введите пароль"
-          className="register-input"
         />
 
         {/* Поле для подтверждения пароля */}
-        <LabelRC htmlFor="confirmPassword" className="register-label">
-          Подтверждение:
-        </LabelRC>
+        <LabelRC htmlFor="confirmPassword">Подтвердите пароль</LabelRC>
         <InputRC
-          id="confirmPassword"
           name="confirmPassword"
           type="password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
+          value={confirmPassword}
+          onChange={handleConfirmPasswordChange}
           placeholder="Повторите пароль"
-          className="register-input"
         />
 
-        {/* Кнопка "Создать аккаунт" */}
-        <ButtonRC type="submit" className="register-primary-button">
-          Создать аккаунт
-        </ButtonRC>
-
-        {/* Кнопка "Войти" */}
-        <ButtonRC
-          type="button"
-          className="register-secondary-button"
-        >
-          Войти
-        </ButtonRC>
+        {/* Контейнер с кнопками */}
+        <div className="button-container">
+          <ButtonRC onClick={handleCreateAccount} className="primary-button">
+            Создать аккаунт
+          </ButtonRC>
+          <ButtonRC onClick={handleLogin} className="secondary-button">
+            Войти
+          </ButtonRC>
+        </div>
       </form>
     </div>
   );

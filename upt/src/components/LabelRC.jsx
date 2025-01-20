@@ -1,10 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import "./style/label-rc.css"
+import './style/label-rc.css';
 
-const LabelRC = ({ htmlFor, children, className }) => {
+const LabelRC = ({ htmlFor, children, className, ...props }) => {
   return (
-    <label htmlFor={htmlFor} className={className}>
+    <label
+      htmlFor={htmlFor}
+      className={`label-rc ${className}`} // Добавляем базовый класс и пользовательские классы
+      {...props} // Передаём все остальные пропсы
+    >
       {children}
     </label>
   );

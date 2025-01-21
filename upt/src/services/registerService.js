@@ -1,10 +1,11 @@
 import axios from 'axios';
 
+
 const registerUser = async (email, password) => {
     try {
         const requestBody = {
             emailAddress: email, // Поле "emailAddress" в теле запроса
-            passwordHash: password, // Поле "passwordHash" в теле запроса
+            password: password, // Поле "password" в теле запроса
         };
 
         console.log('Отправляемый запрос:', requestBody); // Логируем тело запроса

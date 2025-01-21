@@ -52,6 +52,7 @@ function MainTrainer() {
 
     // Список пунктов меню с иконками
     const menuItems = [
+        { id: 'news', text: 'Новости', path: 'news', icon: <HomeIcon /> },
         { id: 'programs', text: 'Программы', path: 'programs', icon: <FitnessCenterIcon /> },
         { id: 'clients', text: 'Клиенты', path: 'clients', icon: <PeopleIcon /> },
         { id: 'profile', text: 'Профиль', path: 'profile', icon: <PersonIcon /> },
@@ -64,7 +65,7 @@ function MainTrainer() {
                 <Toolbar>
                     {/* Пункты меню */}
                     <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
-                        {/* Кнопка "Новости" с выпадающим меню */}
+                        {/*  
                         <Button
                             color="inherit"
                             startIcon={<HomeIcon />}
@@ -79,11 +80,11 @@ function MainTrainer() {
                                 py: 1,
                             }}
                         >
-                            Новости
-                        </Button>
+                            
+                        </Button> */}
 
                         {/* Выпадающее меню */}
-                        <Menu
+                        {/*  <Menu
                             anchorEl={anchorEl}
                             open={open}
                             onClose={handleMenuClose}
@@ -93,7 +94,7 @@ function MainTrainer() {
                                 selected={location.pathname.includes('news')}
                             >
                                 <ListItemIcon>
-                                    <HomeIcon fontSize="small" /> {/* Иконка для новостей */}
+                                    <HomeIcon fontSize="small" />
                                 </ListItemIcon>
                                 Новости
                             </MenuItem>
@@ -102,11 +103,11 @@ function MainTrainer() {
                                 selected={location.pathname.includes('events')}
                             >
                                 <ListItemIcon>
-                                    <EventIcon fontSize="small" /> {/* Иконка для мероприятий */}
+                                    <EventIcon fontSize="small" /> 
                                 </ListItemIcon>
                                 Мероприятия
                             </MenuItem>
-                        </Menu>
+                        </Menu>*/ }
 
                         {/* Остальные пункты меню */}
                         {menuItems.map((item) => (

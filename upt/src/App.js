@@ -14,6 +14,7 @@ import ClientsPage from './pages/ClientsPage';
 import MapPage from './pages/Map';
 import ProfileTrainer from './pages/ProfileTrainer';
 import EventsPage from './pages/Events';
+import ClientMain from './pages/ClientMain';
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
         <Route path="/client_info_add" element={<ClientInfo />} />
         <Route path="/choose_plan" element={<ChoosePlan />} />
         <Route path="/pay" element={<Pay />} />
+        <Route path="/client_main" element={<ClientMain />}/>
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
         <Route path="/trainer_main" element={<MainTrainer />}>
           <Route path="news" element={<NewsPage />} />

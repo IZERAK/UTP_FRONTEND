@@ -47,13 +47,13 @@ const ProfilePage = () => {
         };
 
         try {
-            setLoading(true);
+         /*    setLoading(true);
             // Отправляем данные на сервер
             const response = await userService.updateUser(51, userData);
             console.log('Данные пользователя обновлены:', response);
-
+ */
             // Перенаправляем пользователя на страницу info-user
-            navigate('/client_info_add');
+            navigate('/client_main');
         } catch (error) {
             setError(error.message || 'Произошла ошибка при обновлении данных.');
         } finally {

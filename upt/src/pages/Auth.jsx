@@ -28,7 +28,7 @@ function Auth() {
             console.log('Ответ сервера:', response);
 
             // Перенаправляем на страницу "Выберите роль"
-            navigate('/select-role');
+            navigate('/role');
         } catch (error) {
             setError(error.message || 'Произошла ошибка при авторизации. Пожалуйста, попробуйте снова.');
         } finally {

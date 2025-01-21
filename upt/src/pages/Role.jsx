@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { cityService } from '../services/apiService'; // Импортируем сервис
+import InputMask from 'react-input-mask';
+import { cityService } from '../services/apiService'; // Импортируем сервис для городов
 import RoleSlider from '../components/RoleToggle'; // Импортируем кастомный слайдер
 
 function RoleSelectionPage() {
@@ -11,6 +13,7 @@ function RoleSelectionPage() {
     const [cities, setCities] = useState([]); // Список городов из API
     const [loading, setLoading] = useState(false); // Состояние загрузки
     const [error, setError] = useState(null); // Ошибки
+    const navigate = useNavigate(); // Хук для навигации
 
     // Получаем список городов из API
     useEffect(() => {
@@ -36,7 +39,7 @@ function RoleSelectionPage() {
     };
 
     // Обработчик отправки формы
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         // Валидация полей
@@ -45,16 +48,24 @@ function RoleSelectionPage() {
             return;
         }
 
-        // Сохраняем данные в localStorage или состоянии приложения
-        const userData = {
-            role,
-            fullName,
-            phoneNumber,
-            city,
-        };
+        // Проверка номера телефона
+        const isPhoneValid = phoneNumber.replace(/\D/g, '').length === 11; // Проверка на 11 цифр
+        if (!isPhoneValid) {
+            setError('Номер телефона должен содержать 11 цифр.');
+            return;
+        }
 
-        console.log('Данные пользователя:', userData);
-        // Здесь можно отправить данные на сервер или сохранить для следующего шага
+        // Переход на страницу в зависимости от роли
+        if (role === 'client') {
+            navigate('/client_info_add'); // Переход на страницу для клиента
+        } else if (role === 'trainer') {
+            navigate('/choose_plan'); // Переход на страницу для тренера
+        }
+    };
+
+    // Обработчик кнопки "Назад"
+    const handleBack = () => {
+        navigate(-1); // Переход на предыдущую страницу
     };
 
     return (
@@ -86,14 +97,24 @@ function RoleSelectionPage() {
                         onChange={(e) => setFullName(e.target.value)}
                         margin="normal"
                     />
-                    <TextField
-                        required
-                        fullWidth
-                        label="Номер телефона"
+
+                    {/* Поле для номера телефона с маской */}
+                    <InputMask
+                        mask="+7 (999) 999-99-99" // Маска для российского номера
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        margin="normal"
-                    />
+                    >
+                        {(inputProps) => (
+                            <TextField
+                                {...inputProps}
+                                required
+                                fullWidth
+                                label="Номер телефона"
+                                margin="normal"
+                            />
+                        )}
+                    </InputMask>
+
                     <FormControl fullWidth margin="normal">
                         <InputLabel>Город</InputLabel>
                         <Select
@@ -118,6 +139,16 @@ function RoleSelectionPage() {
                         disabled={loading}
                     >
                         {loading ? 'Загрузка...' : 'Продолжить'}
+                    </Button>
+
+                    {/* Кнопка "Назад" */}
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={handleBack}
+                        sx={{ mt: 2 }}
+                    >
+                        Назад
                     </Button>
                 </Box>
 

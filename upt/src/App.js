@@ -12,6 +12,7 @@ import NewsPage from './pages/NewsPage';
 import ProgramsPage from './pages/ProgramsPage';
 import ClientsPage from './pages/ClientsPage';
 import ProfilePage from './pages/ProfilePage';
+import MapPage from './pages/Map';
 
 
 function App() {
@@ -28,10 +29,12 @@ function App() {
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
         <Route path="/trainer_main" element={<MainTrainer />}>
           <Route path="news" element={<NewsPage />} />
-          <Route path="programs" element={<ProgramsPage />} />
+          <Route path="programs" element={<ProgramsPage />}>
+            <Route path="map" element={<MapPage />} /> 
+          </Route>
           <Route path="clients" element={<ClientsPage />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route index element={<ProgramsPage />} /> 
+          <Route index element={<ProgramsPage />} />
         </Route>
 
       </Routes>

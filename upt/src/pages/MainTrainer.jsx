@@ -1,87 +1,79 @@
 import React from 'react';
-import { AppBar, Toolbar, IconButton, Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Badge } from '@mui/material';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, IconButton, Box, Typography, Badge, Button } from '@mui/material';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import NewsIcon from '@mui/icons-material/Article';
-import ProgramsIcon from '@mui/icons-material/FitnessCenter';
-import ClientsIcon from '@mui/icons-material/People';
-import ProfileIcon from '@mui/icons-material/Person';
+import HomeIcon from '@mui/icons-material/Home';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import PeopleIcon from '@mui/icons-material/People';
+import PersonIcon from '@mui/icons-material/Person';
 
 function MainTrainer() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Обработчик выхода из системы
     const handleLogout = () => {
         // Здесь можно добавить логику для выхода из системы
         localStorage.removeItem('accessToken'); // Удаляем токен доступа
         localStorage.removeItem('refreshToken'); // Удаляем refresh-токен
-        navigate('/login'); // Переход на страницу входа
+        navigate('/auth'); // Переход на страницу входа
     };
 
-    // Список пунктов меню
+    // Список пунктов меню с иконками
     const menuItems = [
-        { id: 'news', text: 'Новости', icon: <NewsIcon />, path: 'news' },
-        { id: 'programs', text: 'Программы', icon: <ProgramsIcon />, path: 'programs' },
-        { id: 'clients', text: 'Клиенты', icon: <ClientsIcon />, path: 'clients' },
-        { id: 'profile', text: 'Профиль', icon: <ProfileIcon />, path: 'profile' },
+        { id: 'news', text: 'Новости', path: 'news', icon: <HomeIcon /> },
+        { id: 'programs', text: 'Программы', path: 'programs', icon: <FitnessCenterIcon /> },
+        { id: 'clients', text: 'Клиенты', path: 'clients', icon: <PeopleIcon /> },
+        { id: 'profile', text: 'Профиль', path: 'profile', icon: <PersonIcon /> },
     ];
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-            {/* Боковое меню */}
-            <Drawer
-                variant="permanent" // Меню всегда видимо
-                sx={{
-                    width: 240,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: 240,
-                        boxSizing: 'border-box',
-                    },
-                }}
-            >
-                <Toolbar /> {/* Отступ для AppBar */}
-                <Box sx={{ overflow: 'auto' }}>
-                    <List>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            {/* Навигационная панель */}
+            <AppBar position="fixed">
+                <Toolbar>
+                    {/* Пункты меню */}
+                    <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
                         {menuItems.map((item) => (
-                            <ListItem
-                                button
+                            <Button
                                 key={item.id}
+                                color="inherit"
                                 component={Link}
                                 to={item.path}
+                                startIcon={item.icon}
+                                sx={{
+                                    borderRadius: 2, // Закругленные углы
+                                    backgroundColor: location.pathname.includes(item.path) ? 'rgba(255, 255, 255, 0.2)' : 'transparent', // Плашка для активного пункта
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Эффект при наведении
+                                    },
+                                    px: 2, // Отступы по горизонтали
+                                    py: 1, // Отступы по вертикали
+                                }}
                             >
-                                <ListItemIcon>{item.icon}</ListItemIcon>
-                                <ListItemText primary={item.text} />
-                            </ListItem>
+                                {item.text}
+                            </Button>
                         ))}
-                    </List>
-                </Box>
-            </Drawer>
+                    </Box>
 
-            {/* Основной контейнер */}
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                {/* Навигационная панель */}
-                <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                    <Toolbar>
-                        {/* Иконка уведомлений */}
-                        <IconButton color="inherit" sx={{ ml: 'auto' }}>
-                            <Badge badgeContent={4} color="error"> {/* Пример: 4 новых уведомления */}
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
+                    {/* Иконка уведомлений */}
+                    <IconButton color="inherit">
+                        <Badge badgeContent={4} color="error"> {/* Пример: 4 новых уведомления */}
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
 
-                        {/* Кнопка выхода */}
-                        <IconButton color="inherit" onClick={handleLogout}>
-                            <ExitToAppIcon />
-                        </IconButton>
-                    </Toolbar>
-                </AppBar>
+                    {/* Кнопка выхода */}
+                    <IconButton color="inherit" onClick={handleLogout}>
+                        <ExitToAppIcon />
+                    </IconButton>
+                </Toolbar>
+            </AppBar>
 
-                {/* Основной контент */}
-                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}> {/* mt: 8 для отступа под AppBar */}
-                    <Outlet /> {/* Здесь будут отображаться вложенные маршруты */}
-                </Box>
+            {/* Основной контент */}
+            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}> {/* mt: 8 для отступа под AppBar */}
+                <Outlet /> {/* Здесь будут отображаться вложенные маршруты */}
             </Box>
         </Box>
     );

@@ -8,11 +8,12 @@ import ChoosePlan from './pages/ChoosePlan';
 import Pay from './pages/Pay';
 import TrainerInfo from './pages/TrainerInfo';
 import MainTrainer from "./pages/MainTrainer"
-import NewsPage from './pages/NewsPage';
+import NewsPage from './pages/NewsPageTrainer';
 import ProgramsPage from './pages/ProgramsPage';
 import ClientsPage from './pages/ClientsPage';
-import ProfilePage from './pages/ProfilePage';
 import MapPage from './pages/Map';
+import ProfileTrainer from './pages/ProfileTrainer';
+import EventsPage from './pages/Events';
 
 
 function App() {
@@ -29,14 +30,13 @@ function App() {
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
         <Route path="/trainer_main" element={<MainTrainer />}>
           <Route path="news" element={<NewsPage />} />
-          <Route path="programs" element={<ProgramsPage />}>
-            <Route path="map" element={<MapPage />} /> 
-          </Route>
+          <Route path="events" element={<EventsPage />} />
+          <Route path="programs" element={<ProgramsPage />} />
+          <Route path="map" element={<MapPage />} />
           <Route path="clients" element={<ClientsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile" element={<ProfileTrainer />} />
           <Route index element={<ProgramsPage />} />
         </Route>
-
       </Routes>
     </Router>
   );

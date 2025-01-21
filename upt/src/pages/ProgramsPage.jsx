@@ -12,7 +12,7 @@ function ProgramsPage() {
             <Button
                 variant="contained" // Стиль кнопки
                 component={Link} // Используем Link для навигации
-                to="map" // Переход на /trainer_main/programs/map
+                to="/trainer_main/map" // Абсолютный путь к карте
                 sx={{ mt: 2 }} // Отступ сверху
             >
                 Перейти на карту

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ToggleButton, ToggleButtonGroup, Box, Typography } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Box } from '@mui/material';
 
 function RoleToggle({ onChange }) {
     const [role, setRole] = useState('client'); // По умолчанию выбрана роль "клиент"

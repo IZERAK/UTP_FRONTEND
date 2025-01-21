@@ -1,23 +1,48 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container, Typography, Box, Grid, Link } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Grid, Link, CircularProgress, Snackbar, Alert } from '@mui/material';
+import registerUser from "../services/registerService"; // Импортируем registerUser как default
 
 function RegistrationForm() {
-    // Состояния для полей формы
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null); // Состояние для ошибок
+    const [success, setSuccess] = useState(false); // Состояние для успешной регистрации
 
-    // Обработчик отправки формы
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        if (password !== confirmPassword) {
-            alert('Пароли не совпадают!');
+
+        // Проверка на пустые поля
+        if (!email || !password || !confirmPassword) {
+            setError('Все поля обязательны для заполнения!');
             return;
         }
-        // Здесь можно добавить логику для отправки данных на сервер
-        console.log('Email:', email);
-        console.log('Password:', password);
-        alert('Регистрация прошла успешно!');
+
+        // Проверка совпадения паролей
+        if (password !== confirmPassword) {
+            setError('Пароли не совпадают!');
+            return;
+        }
+
+        setLoading(true);
+        setError(null); // Сбрасываем ошибку перед запросом
+
+        try {
+            // Вызов функции регистрации из registerService
+            const response = await registerUser(email, password);
+            setSuccess(true); // Устанавливаем успешную регистрацию
+            console.log('Ответ сервера:', response);
+        } catch (error) {
+            setError(error.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCloseSnackbar = () => {
+        setError(null); // Закрываем уведомление об ошибке
+        setSuccess(false); // Закрываем уведомление об успехе
     };
 
     return (
@@ -71,18 +96,41 @@ function RegistrationForm() {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
+                        disabled={loading}
                     >
-                        Зарегистрироваться
+                        {loading ? <CircularProgress size={24} /> : 'Зарегистрироваться'}
                     </Button>
                     <Grid container justifyContent="flex-end">
                         <Grid item>
-                            <Link href="#" variant="body2">
+                            <Link href="/auth" variant="body2">
                                 Уже есть аккаунт? Войти
                             </Link>
                         </Grid>
                     </Grid>
                 </Box>
             </Box>
+
+            {/* Уведомление об ошибке */}
+            <Snackbar
+                open={!!error}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+            >
+                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+                    {error}
+                </Alert>
+            </Snackbar>
+
+            {/* Уведомление об успехе */}
+            <Snackbar
+                open={success}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+            >
+                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                    Регистрация прошла успешно!
+                </Alert>
+            </Snackbar>
         </Container>
     );
 }

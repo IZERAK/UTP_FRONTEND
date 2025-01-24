@@ -85,8 +85,22 @@ export const daysOfWeekService = {
         return apiRequest('get', '/web/infrastucture/get-days-of-week');
     },
 };
+
 export const gymService = {
     getGyms: async () => {
         return apiRequest('get', '/web/gym/get-all');
+    },
+};
+
+// Новые сервисы
+export const deadlinesService = {
+    getDeadlines: async () => {
+        return apiRequest('get', '/web/infrastucture/get-deadlines');
+    },
+};
+
+export const timesOfDayService = {
+    getTimesOfDay: async () => {
+        return apiRequest('get', '/web/infrastucture/get-times-of-day');
     },
 };

@@ -3,7 +3,7 @@ import { Container, Typography, Box, Button, Grid, FormControl, InputLabel, Sele
 import { useNavigate } from 'react-router-dom';
 import { daysOfWeekService } from '../services/apiService'; // Импортируем сервис для дней недели
 
-function TrainerInfoAddPage() {
+function TrainerInfo() {
     const [gender, setGender] = useState('');
     const [experience, setExperience] = useState(''); // Состояние для стажа
     const [hasMedicalEducation, setHasMedicalEducation] = useState(null); // null, "yes", "no"
@@ -249,4 +249,4 @@ function TrainerInfoAddPage() {
     );
 }
 
-export default TrainerInfoAddPage;
+export default TrainerInfo;

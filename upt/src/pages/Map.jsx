@@ -90,7 +90,7 @@ function MapPage() {
             <YMaps>
                 <Map
                     defaultState={defaultState}
-                    width="100%"
+                    width="1000px"
                     height="500px"
                 >
                     {/* Добавляем метки на карту для отфильтрованных залов */}

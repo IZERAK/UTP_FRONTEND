@@ -8,7 +8,11 @@ import {
     Button,
     Menu,
     MenuItem,
-    ListItemIcon, // Добавляем ListItemIcon для иконок
+    Paper,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
 } from '@mui/material';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -17,15 +21,27 @@ import HomeIcon from '@mui/icons-material/Home';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
-import EventIcon from '@mui/icons-material/Event'; // Иконка для мероприятий
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 function MainTrainer() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Состояние для выпадающего меню
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
+    // Состояние для выпадающего меню уведомлений
+    const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+    const notificationsOpen = Boolean(notificationsAnchorEl);
+
+    // Состояние для выпадающего меню "Клиенты"
+    const [clientsAnchorEl, setClientsAnchorEl] = useState(null);
+    const clientsOpen = Boolean(clientsAnchorEl);
+
+    // Тестовые данные для уведомлений
+    const notifications = [
+        { id: 1, text: 'Новый клиент записался на тренировку.' },
+        { id: 2, text: 'Оплата за тренировку прошла успешно.' },
+        { id: 3, text: 'Новое сообщение от клиента.' },
+        { id: 4, text: 'Запланировано мероприятие на следующую неделю.' },
+    ];
 
     // Обработчик выхода из системы
     const handleLogout = () => {
@@ -34,28 +50,43 @@ function MainTrainer() {
         navigate('/auth'); // Переход на страницу входа
     };
 
-    // Обработчик открытия выпадающего меню
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
+    // Обработчик открытия окна уведомлений
+    const handleNotificationsOpen = (event) => {
+        setNotificationsAnchorEl(event.currentTarget);
     };
 
-    // Обработчик закрытия выпадающего меню
-    const handleMenuClose = () => {
-        setAnchorEl(null);
+    // Обработчик закрытия окна уведомлений
+    const handleNotificationsClose = () => {
+        setNotificationsAnchorEl(null);
     };
 
-    // Обработчик выбора пункта меню
-    const handleMenuItemClick = (path) => {
+    // Обработчик открытия выпадающего меню "Клиенты"
+    const handleClientsMenuOpen = (event) => {
+        setClientsAnchorEl(event.currentTarget);
+    };
+
+    // Обработчик закрытия выпадающего меню "Клиенты"
+    const handleClientsMenuClose = () => {
+        setClientsAnchorEl(null);
+    };
+
+    // Обработчик выбора пункта меню "Клиенты"
+    const handleClientsMenuItemClick = (path) => {
         navigate(path); // Переход на выбранный путь
-        handleMenuClose(); // Закрываем меню
+        handleClientsMenuClose(); // Закрываем меню
     };
 
     // Список пунктов меню с иконками
     const menuItems = [
         { id: 'news', text: 'Новости', path: 'news', icon: <HomeIcon /> },
         { id: 'programs', text: 'Программы', path: 'programs', icon: <FitnessCenterIcon /> },
-        { id: 'clients', text: 'Клиенты', path: 'clients', icon: <PeopleIcon /> },
         { id: 'profile', text: 'Профиль', path: 'profile', icon: <PersonIcon /> },
+    ];
+
+    // Пункты выпадающего меню "Клиенты"
+    const clientsMenuItems = [
+        { id: 'clients', text: 'Мои клиенты', path: 'clients' },
+        { id: 'find-clients', text: 'Найти клиентов', path: 'find-clients' },
     ];
 
     return (
@@ -65,51 +96,6 @@ function MainTrainer() {
                 <Toolbar>
                     {/* Пункты меню */}
                     <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
-                        {/*  
-                        <Button
-                            color="inherit"
-                            startIcon={<HomeIcon />}
-                            onClick={handleMenuOpen}
-                            sx={{
-                                borderRadius: 2,
-                                backgroundColor: location.pathname.includes('news') || location.pathname.includes('events') ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                },
-                                px: 2,
-                                py: 1,
-                            }}
-                        >
-                            
-                        </Button> */}
-
-                        {/* Выпадающее меню */}
-                        {/*  <Menu
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleMenuClose}
-                        >
-                            <MenuItem
-                                onClick={() => handleMenuItemClick('news')}
-                                selected={location.pathname.includes('news')}
-                            >
-                                <ListItemIcon>
-                                    <HomeIcon fontSize="small" />
-                                </ListItemIcon>
-                                Новости
-                            </MenuItem>
-                            <MenuItem
-                                onClick={() => handleMenuItemClick('events')}
-                                selected={location.pathname.includes('events')}
-                            >
-                                <ListItemIcon>
-                                    <EventIcon fontSize="small" /> 
-                                </ListItemIcon>
-                                Мероприятия
-                            </MenuItem>
-                        </Menu>*/ }
-
-                        {/* Остальные пункты меню */}
                         {menuItems.map((item) => (
                             <Button
                                 key={item.id}
@@ -130,14 +116,82 @@ function MainTrainer() {
                                 {item.text}
                             </Button>
                         ))}
+
+                        {/* Кнопка "Клиенты" с выпадающим меню */}
+                        <Button
+                            color="inherit"
+                            startIcon={<PeopleIcon />}
+                            endIcon={<ArrowDropDownIcon />}
+                            onClick={handleClientsMenuOpen}
+                            sx={{
+                                borderRadius: 2,
+                                backgroundColor: location.pathname.includes('clients') ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                },
+                                px: 2,
+                                py: 1,
+                            }}
+                        >
+                            Клиенты
+                        </Button>
+
+                        {/* Выпадающее меню "Клиенты" */}
+                        <Menu
+                            anchorEl={clientsAnchorEl}
+                            open={clientsOpen}
+                            onClose={handleClientsMenuClose}
+                        >
+                            {clientsMenuItems.map((item) => (
+                                <MenuItem
+                                    key={item.id}
+                                    onClick={() => handleClientsMenuItemClick(item.path)}
+                                >
+                                    {item.text}
+                                </MenuItem>
+                            ))}
+                        </Menu>
                     </Box>
 
                     {/* Иконка уведомлений */}
-                    <IconButton color="inherit">
-                        <Badge badgeContent={4} color="error"> {/* Пример: 4 новых уведомления */}
+                    <IconButton color="inherit" onClick={handleNotificationsOpen}>
+                        <Badge badgeContent={notifications.length} color="error">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton>
+
+                    {/* Окно уведомлений */}
+                    <Menu
+                        anchorEl={notificationsAnchorEl}
+                        open={notificationsOpen}
+                        onClose={handleNotificationsClose}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                        }}
+                        PaperProps={{
+                            style: {
+                                width: 300, // Ширина окна уведомлений
+                            },
+                        }}
+                    >
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Уведомления
+                            </Typography>
+                            <List>
+                                {notifications.map((notification) => (
+                                    <ListItem key={notification.id}>
+                                        <ListItemText primary={notification.text} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Paper>
+                    </Menu>
 
                     {/* Кнопка выхода */}
                     <IconButton color="inherit" onClick={handleLogout}>

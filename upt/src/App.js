@@ -18,6 +18,7 @@ import EventsPage from './pages/Events';
 import ProgramSelection from './pages/ProgramsSelection';
 import ProgramInfo from './pages/ProgramInfo';
 import MyClients from './pages/MyClients';
+import ForgotPassword from './pages/ForgotPassword';
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
         <Route path="/pay" element={<Pay />} />
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
         <Route path="/client_info_add" element={<ClientInfoAddPage />} />
+        <Route path="/forgot_password" element={<ForgotPassword/>}/>
 
         {/* Trainer Routes */}
         <Route path="/trainer_main" element={<MainTrainer />}>

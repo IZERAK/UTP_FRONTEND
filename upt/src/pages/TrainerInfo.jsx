@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { daysOfWeekService } from '../services/apiService'; // Импортируем сервис для дней недели
 
 function TrainerInfo() {
     const [gender, setGender] = useState('');
@@ -13,22 +12,64 @@ function TrainerInfo() {
     const [loading, setLoading] = useState(true); // Состояние загрузки
     const [error, setError] = useState(null); // Ошибки
 
+    const prepareRequestBody = (state) => {
+        const { gender, experience, hasMedicalEducation, worksWithInjuries, workingDays } = state;
+    
+        // Сопоставление русских названий дней с английскими
+        const russianToEnglishDays = {
+            'воскресенье': 'Sunday',
+            'понедельник': 'Monday',
+            'вторник': 'Tuesday',
+            'среда': 'Wednesday',
+            'четверг': 'Thursday',
+            'пятница': 'Friday',
+            'суббота': 'Saturday'
+        };
+    
+        // Преобразуем выбранные дни в английские названия
+        const selectedDays = Object.entries(workingDays)
+            .filter(([day, selected]) => selected)
+            .map(([day]) => russianToEnglishDays[day]);
+    
+        return {
+            gender,
+            experience,
+            hasMedicalEducation: hasMedicalEducation === 'yes',
+            worksWithInjuries: worksWithInjuries === 'yes',
+            workingDays: selectedDays
+        };
+    };
+
     const navigate = useNavigate();
 
+    const daysOfWeekTranslations = {
+        Sunday: "Воскресенье",
+        Monday: "Понедельник",
+        Tuesday: "Вторник",
+        Wednesday: "Среда",
+        Thursday: "Четверг",
+        Friday: "Пятница",
+        Saturday: "Суббота"
+    };
     // Получаем дни недели из API
-    useEffect(() => {
+   /*  useEffect(() => {
         const fetchDaysOfWeek = async () => {
             try {
-                const data = await daysOfWeekService.getDaysOfWeek(); // Используем сервис для получения дней недели
+                const data = await daysOfWeekService.getDaysOfWeek(); // Получаем дни недели через сервис
                 const daysArray = Object.values(data); // Преобразуем объект в массив
-                setDaysOfWeek(daysArray); // Сохраняем данные в состоянии
 
-                // Инициализируем состояние workingDays
-                const initialWorkingDays = daysArray.reduce((acc, day) => {
+                // Промапливаем дни недели на русский язык
+                const translatedDaysArray = daysArray.map(day => daysOfWeekTranslations[day]);
+
+                setDaysOfWeek(translatedDaysArray); // Сохраняем данные в состоянии
+
+                // Инициализируем состояние workingDays с учетом переведенных дней
+                const initialWorkingDays = translatedDaysArray.reduce((acc, day) => {
                     const dayKey = day.toLowerCase(); // Преобразуем день в нижний регистр для использования в качестве ключа
                     acc[dayKey] = false; // Инициализируем все дни как не выбранные
                     return acc;
                 }, {});
+
                 setWorkingDays(initialWorkingDays);
             } catch (error) {
                 setError('Не удалось загрузить дни недели.');
@@ -39,21 +80,24 @@ function TrainerInfo() {
         };
 
         fetchDaysOfWeek();
-    }, []);
-
+    }, []); */
     // Обработчик отправки формы
     const handleSubmit = (event) => {
         event.preventDefault();
-        // Здесь можно добавить логику для обработки данных формы
-        console.log({
+        
+        const requestBody = prepareRequestBody({
             gender,
             experience,
             hasMedicalEducation,
             worksWithInjuries,
             workingDays,
         });
+        
+        console.log('Тело запроса:', requestBody);
+        // Здесь можно добавить отправку на сервер
+        
         alert('Данные успешно сохранены!');
-        navigate('/trainer_main'); // Переход на главную страницу после сохранения
+        navigate('/trainer_main');
     };
 
     // Обработчик изменения дней приема клиентов

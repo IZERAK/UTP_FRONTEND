@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { userService } from '../services/apiService'; // Импортируем сервисы
 
 const ProfilePage = () => {
     const [gender, setGender] = useState('');

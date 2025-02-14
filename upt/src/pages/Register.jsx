@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Grid, Link, CircularProgress, Snackbar, Alert } from '@mui/material';
-import registerUser from "../services/registerService"; // Импортируем registerUser как default
+import { registerUser,loginUser } from '../services/authService'; // Путь может отличаться
+import { useNavigate } from 'react-router-dom';
 
 function RegistrationForm() {
     const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ function RegistrationForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null); // Состояние для ошибок
     const [success, setSuccess] = useState(false); // Состояние для успешной регистрации
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -29,12 +31,20 @@ function RegistrationForm() {
         setError(null); // Сбрасываем ошибку перед запросом
 
         try {
-            // Вызов функции регистрации из registerService
-            const response = await registerUser(email, password);
-            setSuccess(true); // Устанавливаем успешную регистрацию
-            console.log('Ответ сервера:', response);
+            // Регистрация пользователя
+            await registerUser(email, password);
+
+            // Авторизация пользователя после успешной регистрации
+            const loginResponse = await loginUser(email, password);
+            console.log('Ответ сервера при авторизации:', loginResponse);
+
+            // Устанавливаем успешную регистрацию и авторизацию
+            setSuccess(true);
+
+            // Перенаправляем на страницу выбора роли
+            navigate('/role'); // Замените на ваш путь
         } catch (error) {
-            setError(error.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
+            setError(error.message || 'Произошла ошибка при регистрации или авторизации. Пожалуйста, попробуйте снова.');
         } finally {
             setLoading(false);
         }

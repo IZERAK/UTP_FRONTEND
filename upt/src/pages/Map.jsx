@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { YMaps, Map, Placemark } from '@pbe/react-yandex-maps';
 import { Box, Typography, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search'; // Иконка поиска
-import { gymService } from '../services/apiService'; // Импортируем сервис
 
 function MapPage() {
     const [gyms, setGyms] = useState([]); // Состояние для хранения данных о залах
@@ -12,7 +11,7 @@ function MapPage() {
     const [error, setError] = useState(null); // Состояние для обработки ошибок
 
     // Загрузка данных о залах
-    useEffect(() => {
+   /*  useEffect(() => {
         const fetchGyms = async () => {
             try {
                 const data = await gymService.getGyms(); // Запрашиваем данные
@@ -26,7 +25,7 @@ function MapPage() {
         };
 
         fetchGyms();
-    }, []);
+    }, []); */
 
     // Обработчик изменения поискового запроса
     useEffect(() => {

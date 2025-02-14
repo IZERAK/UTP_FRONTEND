@@ -1,7 +1,16 @@
-import React from 'react';
-import { Container, Typography, Box, Button, Card, CardContent, TextField, Grid } from '@mui/material';
+import React, { useState } from 'react';
+import {
+    Container,
+    Typography,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    TextField,
+    Grid,
+} from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import InputMask from 'react-input-mask'; // Импортируем InputMask для масок
+import InputMask from 'react-input-mask';
 
 // Импортируем логотипы банков (замените на реальные пути к изображениям)
 import TinkoffLogo from '../assets/tinkoff-logo.png';
@@ -14,14 +23,29 @@ function PayPage() {
     const navigate = useNavigate();
     const { selectedPlan } = location.state || {}; // Получаем выбранный план из состояния навигации
 
-    // Данные о банках (только логотипы)
-    const banks = [TinkoffLogo, AlfaLogo, SberLogo, VTBLogo];
+    // Данные о банках (логотипы и имена)
+    const banks = [
+        { id: 1, logo: TinkoffLogo, name: 'Tinkoff' },
+        { id: 2, logo: AlfaLogo, name: 'Alfa-Bank' },
+        { id: 3, logo: SberLogo, name: 'Sberbank' },
+        { id: 4, logo: VTBLogo, name: 'VTB' },
+    ];
+
+    const [selectedBank, setSelectedBank] = useState(null); // Состояние для выбранного банка
+
+    // Обработчик выбора банка
+    const handleBankSelect = (bankId) => {
+        setSelectedBank(bankId === selectedBank ? null : bankId); // Переключение выбора
+    };
 
     // Обработчик оплаты
     const handlePayment = () => {
-        // Здесь можно добавить логику для обработки оплаты
-        console.log('Оплата плана:', selectedPlan);
-        alert(`Оплата плана "${selectedPlan}" прошла успешно!`);
+        if (!selectedBank) {
+            alert('Пожалуйста, выберите банк для оплаты.');
+            return;
+        }
+        console.log('Оплата плана:', selectedPlan, 'через банк:', banks.find((b) => b.id === selectedBank).name);
+        alert(`Оплата плана "${selectedPlan}" через ${banks.find((b) => b.id === selectedBank).title} прошла успешно!`);
         navigate('/trainer_info_add'); // Переход на страницу "trainer_info_add" после оплаты
     };
 
@@ -40,108 +64,81 @@ function PayPage() {
                     alignItems: 'center',
                 }}
             >
-                <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', mb: 4 }}>
-                    Оплата плана: {selectedPlan || 'Неизвестный план'}
-                </Typography>
 
                 {/* Банковской картой */}
                 <Box sx={{ width: '100%', mb: 4 }}>
                     <Typography variant="h6" sx={{ mb: 2 }}>
                         Банковской картой
                     </Typography>
-
                     {/* Номер карты с маской */}
-                    <InputMask
-                        mask="9999 9999 9999 9999" // Маска для номера карты
-                        maskChar=" "
-                        alwaysShowMask
-                    >
+                    <InputMask mask="9999 9999 9999 9999" maskChar=" " alwaysShowMask>
                         {(inputProps) => (
-                            <TextField
-                                {...inputProps}
-                                fullWidth
-                                label="Номер карты"
-                                margin="normal"
-                            />
+                            <TextField {...inputProps} fullWidth label="Номер карты" margin="normal" />
                         )}
                     </InputMask>
-
                     {/* Дата (Мес/год) и CVC на одном уровне */}
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
                             {/* Дата (Мес/год) с маской */}
-                            <InputMask
-                                mask="99/99" // Маска для даты (ММ/ГГ)
-                                maskChar=" "
-                                alwaysShowMask
-                            >
+                            <InputMask mask="99/99" maskChar=" " alwaysShowMask>
                                 {(inputProps) => (
-                                    <TextField
-                                        {...inputProps}
-                                        fullWidth
-                                        label="Мес/год"
-                                        margin="normal"
-                                    />
+                                    <TextField {...inputProps} fullWidth label="Мес/год" margin="normal" />
                                 )}
                             </InputMask>
                         </Grid>
                         <Grid item xs={6}>
                             {/* CVC с маской */}
-                            <InputMask
-                                mask="999" // Маска для CVC
-                                maskChar=" "
-                                alwaysShowMask
-                            >
+                            <InputMask mask="999" maskChar=" " alwaysShowMask>
                                 {(inputProps) => (
-                                    <TextField
-                                        {...inputProps}
-                                        fullWidth
-                                        label="CVC"
-                                        margin="normal"
-                                    />
+                                    <TextField {...inputProps} fullWidth label="CVC" margin="normal" />
                                 )}
                             </InputMask>
                         </Grid>
                     </Grid>
                 </Box>
 
-                {/* СБП и банки (только логотипы) */}
+                {/* Выбор банка через СБП */}
                 <Box sx={{ width: '100%', mb: 4 }}>
                     <Typography variant="h6" sx={{ mb: 2 }}>
                         СБП
                     </Typography>
-                    {banks.map((logo, index) => (
-                        <Card key={index} sx={{ mb: 2, backgroundColor: 'white', boxShadow: 3 }}>
-                            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img
-                                    src={logo}
-                                    alt={`Bank ${index + 1}`}
-                                    style={{ width: '100px', height: 'auto' }} // Фиксированный размер логотипа
-                                />
-                            </CardContent>
-                        </Card>
-                    ))}
+                    <Grid container spacing={2}>
+                        {banks.map((bank) => (
+                            <Grid item xs={6} sm={3} key={bank.id}>
+                                <Card
+                                    onClick={() => handleBankSelect(bank.id)}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        border: selectedBank === bank.id ? '2px solid #007bff' : '1px solid #ccc',
+                                        borderRadius: 2,
+                                        padding: 2,
+                                        boxShadow: selectedBank === bank.id ? 5 : 3,
+                                    }}
+                                >
+                                    <img
+                                        src={bank.logo}
+                                        alt={bank.name}
+                                        style={{ width: '80px', height: 'auto' }} // Фиксированный размер логотипа
+                                    />
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
                 </Box>
 
                 {/* Кнопка оплаты */}
                 <Box sx={{ width: '100%', mb: 2 }}>
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        sx={{ backgroundColor: 'primary.main' }}
-                        onClick={handlePayment}
-                    >
+                    <Button fullWidth variant="contained" sx={{ backgroundColor: 'primary.main' }} onClick={handlePayment}>
                         Оплатить
                     </Button>
                 </Box>
 
                 {/* Кнопка "Назад" */}
                 <Box sx={{ width: '100%' }}>
-                    <Button
-                        fullWidth
-                        variant="outlined"
-                        onClick={handleBack}
-                    >
+                    <Button fullWidth variant="outlined" onClick={handleBack}>
                         Назад
                     </Button>
                 </Box>

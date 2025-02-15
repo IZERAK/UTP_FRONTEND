@@ -11,6 +11,14 @@ export const getClientById = async (clientId) => {
     throw new Error('Failed to fetch client');
   }
 };
+export const getClients = async () => {
+  try {
+    const response = await apiClient.get('/client/get-all')
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch client');
+  }
+};
 
 // Получить клиента по ID пользователя
 export const getClientByUserId = async (userId) => {

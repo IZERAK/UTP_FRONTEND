@@ -1,139 +1,222 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
-    Button,
     Avatar,
-    Paper,
     List,
-    ListItem,
-    ListItemText,
+    Button,
+    Paper,
     Collapse,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
+    TextField,
+    ListItem,
 } from '@mui/material';
-import ChatIcon from '@mui/icons-material/Chat';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Trainer1 from '../assets/Тренер 1.jpg'
-import Trainer2 from '../assets/Тренер 2.jpg'
-import Trainer3 from '../assets/Тренер 3.jpg'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { getClients } from '../services/clientService';
+import { getTrainerById } from '../services/trainerService';
+import { chatGetHistory, chatAddMsg } from '../services/chatService';
 
-function ClientProfile() {
-    // Состояние для отслеживания открытого чата для каждого клиента
-    const [openChatId, setOpenChatId] = useState(null);
+function ClientsPage() {
+    const [clients, setClients] = useState([]);
+    const [openChats, setOpenChats] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState('');
+    const [chatHistory, setChatHistory] = useState({});
+    const [trainer, setTrainer] = useState(null);
 
-    // Данные клиентов
-    const clients = [
-        {
-            id: 1,
-            name: 'Иванов Иван Иванович',
-            avatar: Trainer1,
-            availableDays: ['Понедельник', 'Среда', 'Пятница'],
-            availableTime: '10:00 - 18:00',
-        },
-        {
-            id: 2,
-            name: 'Петров Петр Петрович',
-            avatar: Trainer2,
-            availableDays: ['Вторник', 'Четверг'],
-            availableTime: '09:00 - 17:00',
-        },
-        {
-            id: 3,
-            name: 'Сидорова Анна Владимировна',
-            avatar: Trainer3,
-            availableDays: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'],
-            availableTime: '08:00 - 20:00',
-        },
-    ];
-
-    // Обработчик открытия/закрытия чата
-    const handleStartChat = (clientId) => {
-        if (openChatId === clientId) {
-            setOpenChatId(null); // Закрыть чат, если он уже открыт
+    useEffect(() => {
+        const trainerId = localStorage.getItem('id_trainer');
+        if (trainerId) {
+            getTrainerById(trainerId)
+                .then((trainerData) => {
+                    setTrainer({ ...trainerData, id: trainerId });
+                })
+                .catch(() => setError('Ошибка загрузки данных тренера'));
         } else {
-            setOpenChatId(clientId); // Открыть чат для выбранного клиента
+            setError('ID тренера не найден в localStorage');
+        }
+    }, []);
+
+    useEffect(() => {
+        getClients()
+            .then((data) => {
+                const trainerId = localStorage.getItem('id_trainer');
+                // Фильтруем клиентов по trainerId
+                const filteredClients = data.filter((client) => client.trainerId === parseInt(trainerId, 10));
+                const clientsWithIds = filteredClients.map((client) => ({
+                    ...client,
+                    userId: client.user.id,
+                }));
+                setClients(clientsWithIds);
+                setLoading(false);
+            })
+            .catch((error) => {
+                setError(error.message);
+                setLoading(false);
+            });
+    }, []);
+
+    const handleChatToggle = async (clientId, clientUserId) => {
+        // Если чат уже открыт, закрываем его
+        if (openChats[clientId]) {
+            setOpenChats((prev) => ({ ...prev, [clientId]: false }));
+            setMessage('');
+            return;
+        }
+
+        try {
+            // Получаем историю чата
+            const history = await chatGetHistory(localStorage.getItem('id_user'), clientUserId);
+            if (history && history.length > 0) {
+                // Сохраняем историю чата
+                setChatHistory((prev) => ({ ...prev, [clientId]: history }));
+            }
+            // Открываем чат
+            setOpenChats((prev) => ({ ...prev, [clientId]: true }));
+        } catch (error) {
+            alert('Не удалось получить историю чата.');
         }
     };
 
+    const handleSendMessage = async (clientId, clientUserId) => {
+        if (!message.trim()) return;
+
+        try {
+            // Отправляем сообщение
+            const newMessage = {
+                senderId: localStorage.getItem('id_user'),
+                recipientId: clientUserId,
+                message: message.trim(),
+            };
+            await chatAddMsg(newMessage);
+
+            // Обновляем историю чата
+            const updatedHistory = [...(chatHistory[clientId] || []), { ...newMessage, time: new Date().toISOString() }];
+            setChatHistory((prev) => ({ ...prev, [clientId]: updatedHistory }));
+
+            // Очищаем поле ввода
+            setMessage('');
+        } catch (error) {
+            alert('Не удалось отправить сообщение.');
+        }
+    };
+
+    if (loading) return <Typography>Загрузка клиентов...</Typography>;
+    if (error) return <Typography color="error">Ошибка: {error}</Typography>;
+
     return (
-        <Box sx={{ p: 3 }}>
-            {/* Заголовок страницы */}
-            <Typography variant="h4" gutterBottom>
-                Мои клиенты
-            </Typography>
+        <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+            {/* Заголовок */}
+            <Box sx={{ p: 2, position: 'sticky', top: 50, zIndex: 10, backgroundColor: 'white' }}>
+                <Typography variant="h4" align="center">
+                    Мои клиенты
+                </Typography>
+            </Box>
 
-            {/* Список клиентов с использованием Accordion */}
-            {clients.map((client) => (
-                <Accordion key={client.id} sx={{ mb: 2 }}>
-                    <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls={`panel-${client.id}-content`}
-                        id={`panel-${client.id}-header`}
-                    >
-                        {/* Краткая информация о клиенте */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Avatar src={client.avatar} alt={client.name} sx={{ width: 50, height: 50 }} />
-                            <Typography variant="h6">{client.name}</Typography>
-                        </Box>
-                    </AccordionSummary>
+            {/* Список клиентов */}
+            <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
+                <Paper sx={{ p: 2, border: 'none' }}>
+                    {clients.length === 0 ? ( // Проверяем, есть ли клиенты
+                        <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+                            Клиентов нет
+                        </Typography>
+                    ) : (
+                        <List>
+                            {clients.map((client) => (
+                                <React.Fragment key={client.id}>
+                                    <ListItem
+                                        sx={{
+                                            border: '1px solid rgb(25 118 210)',
+                                            p: 2,
+                                            borderRadius: '20px',
+                                            margin: '5px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Avatar src={client.user.avatar} alt={client.user.name} sx={{ width: 80, height: 80, mr: 2 }} />
+                                            <Box>
+                                                <Typography variant="h6">{client.user.name}</Typography>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    Город: {client.user.city.name}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => handleChatToggle(client.id, client.userId)}
+                                            endIcon={openChats[client.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                        >
+                                            Чат
+                                        </Button>
+                                    </ListItem>
+                                    <Collapse in={openChats[client.id]}>
+                                        <Paper elevation={3} sx={{ mt: 1, mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                            <Typography variant="h6">Чат с {client.user.name}</Typography>
+                                            <Box sx={{ height: 150, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
+                                                {(chatHistory[client.id] || []).map((msg) => {
+                                                    const idUser = localStorage.getItem('id_user');
+                                                    const isCurrentUser = msg.senderId === parseInt(idUser, 10) || msg.senderId === idUser;
 
-                    <AccordionDetails>
-                        {/* Подробная информация о клиенте */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {/* Доступные дни и время */}
-                            <Paper sx={{ p: 2 }}>
-                                <Typography variant="h6" gutterBottom>
-                                    Доступные дни и время
-                                </Typography>
-                                <List>
-                                    {client.availableDays.map((day, index) => (
-                                        <ListItem key={index}>
-                                            <ListItemText primary={day} secondary={client.availableTime} />
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </Paper>
-
-                            {/* Кнопка для открытия чата */}
-                            <Button
-                                variant="contained"
-                                startIcon={<ChatIcon />}
-                                onClick={() => handleStartChat(client.id)}
-                                sx={{ mt: 1 }}
-                            >
-                                Начать чат (-1 токен)
-                            </Button>
-
-                            {/* Чат (раскрывающийся блок) */}
-                            <Collapse in={openChatId === client.id}>
-                                <Paper sx={{ p: 2, mt: 2 }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Чат с клиентом
-                                    </Typography>
-                                    <Box sx={{ height: 150, overflowY: 'auto', border: '1px solid #ddd', p: 2 }}>
-                                        {/* Здесь будет отображаться история сообщений */}
-                                        <Typography variant="body1" color="textSecondary">
-                                            История сообщений...
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                                        <input
-                                            type="text"
-                                            placeholder="Введите сообщение..."
-                                            style={{ flexGrow: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                                        />
-                                        <Button variant="contained">Отправить</Button>
-                                    </Box>
-                                </Paper>
-                            </Collapse>
-                        </Box>
-                    </AccordionDetails>
-                </Accordion>
-            ))}
+                                                    return (
+                                                        <Box
+                                                            key={msg.id}
+                                                            sx={{
+                                                                mb: 1,
+                                                                display: 'flex',
+                                                                justifyContent: isCurrentUser ? 'flex-end' : 'flex-start',
+                                                            }}
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    p: 1,
+                                                                    borderRadius: 1,
+                                                                    backgroundColor: isCurrentUser ? '#e3f2fd' : '#f5f5f5',
+                                                                    maxWidth: '70%',
+                                                                }}
+                                                            >
+                                                                <Typography variant="body1" color={isCurrentUser ? 'primary' : 'textSecondary'}>
+                                                                    {msg.message}
+                                                                </Typography>
+                                                                <Typography variant="caption" color="textSecondary">
+                                                                    {new Date(msg.time).toLocaleTimeString()}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Box>
+                                                    );
+                                                })}
+                                            </Box>
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="Введите сообщение..."
+                                                    variant="outlined"
+                                                    size="small"
+                                                    value={message}
+                                                    onChange={(e) => setMessage(e.target.value)}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleSendMessage(client.id, client.userId)}
+                                                >
+                                                    Отправить
+                                                </Button>
+                                            </Box>
+                                        </Paper>
+                                    </Collapse>
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    )}
+                </Paper>
+            </Box>
         </Box>
     );
 }
 
-export default ClientProfile;
+export default ClientsPage; 

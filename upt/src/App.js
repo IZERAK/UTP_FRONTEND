@@ -19,6 +19,7 @@ import ProgramSelection from './pages/ProgramsSelection';
 import ProgramInfo from './pages/ProgramInfo';
 import MyClients from './pages/MyClients';
 import ForgotPassword from './pages/ForgotPassword';
+import ProgramsSelectionTrainer from './pages/ProgramsSelectionTrainer'
 
 
 function App() {
@@ -35,13 +36,16 @@ function App() {
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
         <Route path="/client_info_add" element={<ClientInfoAddPage />} />
         <Route path="/forgot_password" element={<ForgotPassword/>}/>
+        <Route path="/programs_selection" element={<ProgramsSelectionTrainer />} />
+        <Route path="/map" element={<MapPage />} />
+
 
         {/* Trainer Routes */}
         <Route path="/trainer_main" element={<MainTrainer />}>
           <Route path="news" element={<NewsPage />} />
           <Route path="events" element={<EventsPage />} />
           <Route path="programs" element={<ProgramsPage />} />
-          <Route path="programs/selection" element={<ProgramSelection />} />
+          <Route path="programs/selection" element={<ProgramsSelectionTrainer />} />
           <Route path="programs/info" element={<ProgramInfo />} />
           <Route path="map" element={<MapPage />} />
           <Route path="find-clients" element={<ClientsPage />} />

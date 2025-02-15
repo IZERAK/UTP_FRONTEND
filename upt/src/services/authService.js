@@ -21,20 +21,22 @@ export const loginUser = async (emailAddress, password) => {
       emailAddress,
       password,
     });
-
     // Проверяем, что в ответе есть необходимые данные (токены и email)
     if (response.data && response.data.accessToken && response.data.refreshToken) {
       // Сохраняем токены и email в localStorage
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('userEmail', emailAddress);
-      const user = await getUserByEmail(emailAddress);
-      localStorage.setItem('id_user', user.id);
-
-      return response.data; // Возвращаем данные для дальнейшего использования
+      setTimeout(300)
+      if (localStorage.getItem('accessToken')) {
+        const user = await getUserByEmail(emailAddress);
+        localStorage.setItem('id_user', user.id);
+        return response.data;
+      } // Возвращаем данные для дальнейшего использования
     } else {
       throw new Error('Invalid response data from server');
     }
+
   } catch (error) {
     // Если произошла ошибка, очищаем localStorage (на случай, если там остались старые данные)
     localStorage.removeItem('accessToken');

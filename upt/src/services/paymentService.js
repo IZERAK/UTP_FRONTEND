@@ -13,13 +13,15 @@ export const getPaymentsByUserId = async (userId) => {
 };
 
 // Добавить новую оплату
-export const addPayment = async (amount, purchasedProduct, title, userId) => {
+export const addPayment = async (amount_v, purchasedProduct, title, userId_v) => {
+  const amount = parseInt(amount_v, 10)
+  const userId = parseInt(userId_v, 10)
   try {
     const response = await apiClient.post('/payment/add', {
-      amount,
-      purchasedProduct,
-      title,
       userId,
+      title,
+      amount,
+      purchasedProduct
     });
     return response.data;
   } catch (error) {

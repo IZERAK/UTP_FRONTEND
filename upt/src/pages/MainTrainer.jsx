@@ -45,8 +45,7 @@ function MainTrainer() {
 
     // Обработчик выхода из системы
     const handleLogout = () => {
-        localStorage.removeItem('accessToken'); // Удаляем токен доступа
-        localStorage.removeItem('refreshToken'); // Удаляем refresh-токен
+        localStorage.clear() // Удаляем refresh-токен
         navigate('/auth'); // Переход на страницу входа
     };
 

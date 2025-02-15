@@ -16,21 +16,27 @@ import { getPurchasedProducts } from '../services/infrastructureService';
 const planDescriptions = {
   FreeSubscribe: {
     title: 'Бесплатный план',
+    plan: 'FreeSubscribe',
     duration: '2 недели',
     price: 'Бесплатно',
+    price_v: 0,
     messageLimit: 15,
     includesNewsPublication: false,
   },
   ProSubscribe: {
     title: 'Pro план',
+    plan: 'ProSubscribe',
     duration: '1 месяц',
+    price_v: 1499,
     price: '1 499 ₽',
     messageLimit: 50,
     includesNewsPublication: true,
   },
   DeluxeSubscribe: {
     title: 'Deluxe план',
+    plan: 'DeluxeSubscribe',
     duration: '1 месяц',
+    price_v: 1999,
     price: '1 999 ₽',
     messageLimit: 100,
     includesNewsPublication: true,
@@ -67,8 +73,9 @@ function ChoosePlanPage() {
 
     if (selectedPlan) {
       // Сохраняем выбранный план в localStorage
-      localStorage.setItem('selectedPlan', planData.title);
-      localStorage.setItem('selectedPlanPrice', planData.price);
+      localStorage.setItem('selectedPlan', planData.plan);
+      localStorage.setItem('selectedPlanPrice', planData.price_v);
+
 
       // Переходим на страницу оплаты с передачей выбранного индекса плана
       navigate('/pay', { state: { selectedPlanIndex: planIndex } });
@@ -147,8 +154,8 @@ function ChoosePlanPage() {
                         plan.type === 'FreeSubscribe'
                           ? 'primary.main'
                           : plan.type === 'ProSubscribe'
-                          ? 'secondary.main'
-                          : 'success.main',
+                            ? 'secondary.main'
+                            : 'success.main',
                       mb: 2,
                     }}
                   >

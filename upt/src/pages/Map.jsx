@@ -1,60 +1,80 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { YMaps, Map, Placemark } from '@pbe/react-yandex-maps';
-import { Box, Typography, TextField, InputAdornment } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search'; // Иконка поиска
+import { Box, Typography, TextField, InputAdornment, Button } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { getAllGyms } from '../services/gymService'; 
+import { getTrainerById } from '../services/trainerService';
 
 function MapPage() {
-    const [gyms, setGyms] = useState([]); // Состояние для хранения данных о залах
-    const [filteredGyms, setFilteredGyms] = useState([]); // Состояние для отфильтрованных залов
-    const [searchQuery, setSearchQuery] = useState(''); // Состояние для поискового запроса
-    const [loading, setLoading] = useState(true); // Состояние для отображения загрузки
-    const [error, setError] = useState(null); // Состояние для обработки ошибок
+    const [gyms, setGyms] = useState([]);
+    const [filteredGyms, setFilteredGyms] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [selectedGym, setSelectedGym] = useState(null);
+    const [trainer, setTrainer] = useState(null);
+    const mapRef = useRef(null);
 
-    // Загрузка данных о залах
-   /*  useEffect(() => {
+    useEffect(() => {
         const fetchGyms = async () => {
             try {
-                const data = await gymService.getGyms(); // Запрашиваем данные
-                setGyms(data); // Сохраняем данные в состояние
-                setFilteredGyms(data); // Инициализируем отфильтрованные данные
-                setLoading(false); // Убираем загрузку
+                const data = await getAllGyms();
+                setGyms(data);
+                setFilteredGyms(data);
+                setLoading(false);
             } catch (err) {
-                setError(err.message); // Обрабатываем ошибку
-                setLoading(false); // Убираем загрузку
+                setError(err.message);
+                setLoading(false);
             }
         };
-
         fetchGyms();
-    }, []); */
+    }, []);
 
-    // Обработчик изменения поискового запроса
     useEffect(() => {
         if (searchQuery) {
             const filtered = gyms.filter((gym) =>
-                gym.name.toLowerCase().includes(searchQuery.toLowerCase()) || // Поиск по названию
-                gym.city.name.toLowerCase().includes(searchQuery.toLowerCase()) // Поиск по городу
+                gym.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                gym.city.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            setFilteredGyms(filtered); // Обновляем отфильтрованные залы
+            setFilteredGyms(filtered);
         } else {
-            setFilteredGyms(gyms); // Если запрос пустой, показываем все залы
+            setFilteredGyms(gyms);
         }
     }, [searchQuery, gyms]);
 
-    // Преобразуем координаты из строки в массив чисел
     const parseLocation = (location) => {
         return location.split(',').map(coord => parseFloat(coord.trim()));
     };
 
-    // Координаты центра карты (первый зал или Москва по умолчанию)
     const defaultState = {
         center: gyms.length > 0 ? parseLocation(gyms[0].location) : [55.751574, 37.573856],
         zoom: 10,
     };
 
+    const handlePlacemarkClick = (gym) => {
+        setSelectedGym(gym);
+        if (mapRef.current) {
+            mapRef.current.setCenter(parseLocation(gym.location), 14, {
+                duration: 300,
+            });
+        }
+    };
+
+    const handleContinue = async () => {
+        if (selectedGym && selectedGym.trainerId) {
+            try {
+                const trainerData = await getTrainerById(selectedGym.trainerId);
+                setTrainer(trainerData);
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+        console.log(selectedGym)
+    };
+
     if (loading) {
         return <Typography>Загрузка данных...</Typography>;
     }
-
     if (error) {
         return <Typography color="error">Ошибка: {error}</Typography>;
     }
@@ -67,8 +87,6 @@ function MapPage() {
             <Typography sx={{ mb: 3 }}>
                 Здесь отображаются залы для тренировок.
             </Typography>
-
-            {/* Поле поиска */}
             <TextField
                 fullWidth
                 variant="outlined"
@@ -84,15 +102,13 @@ function MapPage() {
                 }}
                 sx={{ mb: 3 }}
             />
-
-            {/* Контейнер для карты */}
             <YMaps>
                 <Map
                     defaultState={defaultState}
-                    width="1000px"
+                    width="1500px"
                     height="500px"
+                    instanceRef={mapRef}
                 >
-                    {/* Добавляем метки на карту для отфильтрованных залов */}
                     {filteredGyms.map((gym, index) => {
                         const coordinates = parseLocation(gym.location);
                         return (
@@ -107,13 +123,32 @@ function MapPage() {
                                     `,
                                 }}
                                 options={{
-                                    preset: 'islands#blueSportIcon', // Иконка для метки
+                                    preset: selectedGym?.id === gym.id ? 'islands#blueSportIcon' : 'islands#blueSportIcon',
+                                    
+                                    iconImageSize: selectedGym?.id === gym.id ? [40, 40] : [30, 30],
                                 }}
+                                onClick={() => handlePlacemarkClick(gym)}
                             />
                         );
                     })}
                 </Map>
             </YMaps>
+            {selectedGym && (
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6">Выбранный зал: {selectedGym.name}</Typography>
+                    <Button variant="contained" onClick={handleContinue}>
+                        Продолжить
+                    </Button>
+                    {trainer && (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="h6">Информация о тренере:</Typography>
+                            <Typography>Имя: {trainer.name}</Typography>
+                            <Typography>Специализация: {trainer.specialization}</Typography>
+                            <Typography>Опыт: {trainer.experience} лет</Typography>
+                        </Box>
+                    )}
+                </Box>
+            )}
         </Box>
     );
 }

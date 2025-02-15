@@ -1,294 +1,205 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Typography, Box, Button, Grid, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { getDaysOfWeek, getGenders } from '../services/infrastructureService';
+import { updateUser, getUserByEmail } from '../services/userService';
+import { createTrainer } from '../services/trainerService';
 
 function TrainerInfo() {
     const [gender, setGender] = useState('');
-    const [experience, setExperience] = useState(''); // Состояние для стажа
-    const [hasMedicalEducation, setHasMedicalEducation] = useState(null); // null, "yes", "no"
-    const [worksWithInjuries, setWorksWithInjuries] = useState(null); // null, "yes", "no"
-    const [workingDays, setWorkingDays] = useState({});
-    const [daysOfWeek, setDaysOfWeek] = useState([]); // Состояние для хранения дней недели из API
-    const [loading, setLoading] = useState(true); // Состояние загрузки
-    const [error, setError] = useState(null); // Ошибки
-
-    const prepareRequestBody = (state) => {
-        const { gender, experience, hasMedicalEducation, worksWithInjuries, workingDays } = state;
-    
-        // Сопоставление русских названий дней с английскими
-        const russianToEnglishDays = {
-            'воскресенье': 'Sunday',
-            'понедельник': 'Monday',
-            'вторник': 'Tuesday',
-            'среда': 'Wednesday',
-            'четверг': 'Thursday',
-            'пятница': 'Friday',
-            'суббота': 'Saturday'
-        };
-    
-        // Преобразуем выбранные дни в английские названия
-        const selectedDays = Object.entries(workingDays)
-            .filter(([day, selected]) => selected)
-            .map(([day]) => russianToEnglishDays[day]);
-    
-        return {
-            gender,
-            experience,
-            hasMedicalEducation: hasMedicalEducation === 'yes',
-            worksWithInjuries: worksWithInjuries === 'yes',
-            workingDays: selectedDays
-        };
-    };
-
+    const [genders, setGenders] = useState([]);
+    const [experience, setExperience] = useState('');
+    const [hasMedicalEducation, setHasMedicalEducation] = useState('');
+    const [worksWithInjuries, setWorksWithInjuries] = useState('');
+    const [worksWithAthletes, setWorksWithAthletes] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [description, setDescription] = useState('');
+    const [userData, setUserData] = useState(null);
+    const [trainingPrograms, setTrainingPrograms] = useState(['CorrectionAndWeightLoss']);
+    const [gymId, setGymId] = useState(1);
     const navigate = useNavigate();
 
-    const daysOfWeekTranslations = {
-        Sunday: "Воскресенье",
-        Monday: "Понедельник",
-        Tuesday: "Вторник",
-        Wednesday: "Среда",
-        Thursday: "Четверг",
-        Friday: "Пятница",
-        Saturday: "Суббота"
+    const genderTranslations = {
+        male: "Мужской",
+        female: "Женский",
+        none: "Другой"
     };
-    // Получаем дни недели из API
-   /*  useEffect(() => {
-        const fetchDaysOfWeek = async () => {
+
+    const transformGenders = (gendersData) => {
+        return Object.entries(gendersData).map(([key, value]) => ({
+            id: key,
+            value: key,
+            label: genderTranslations[value.toLowerCase()] || value,
+        }));
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
             try {
-                const data = await daysOfWeekService.getDaysOfWeek(); // Получаем дни недели через сервис
-                const daysArray = Object.values(data); // Преобразуем объект в массив
+                const userEmail = localStorage.getItem('userEmail');
+                if (!userEmail) {
+                    throw new Error('Email пользователя не найден');
+                }
 
-                // Промапливаем дни недели на русский язык
-                const translatedDaysArray = daysArray.map(day => daysOfWeekTranslations[day]);
+                const user = await getUserByEmail(userEmail);
+                setUserData(user);
 
-                setDaysOfWeek(translatedDaysArray); // Сохраняем данные в состоянии
 
-                // Инициализируем состояние workingDays с учетом переведенных дней
-                const initialWorkingDays = translatedDaysArray.reduce((acc, day) => {
-                    const dayKey = day.toLowerCase(); // Преобразуем день в нижний регистр для использования в качестве ключа
-                    acc[dayKey] = false; // Инициализируем все дни как не выбранные
-                    return acc;
-                }, {});
 
-                setWorkingDays(initialWorkingDays);
+
+                const gendersData = await getGenders();
+                setGenders(transformGenders(gendersData));
+
+                if (user.gender) {
+                    setGender(user.gender);
+                }
             } catch (error) {
-                setError('Не удалось загрузить дни недели.');
-                console.error('Ошибка при загрузке дней недели:', error);
+                setError('Не удалось загрузить данные.');
+                console.error('Ошибка при загрузке данных:', error);
             } finally {
                 setLoading(false);
             }
         };
+        fetchData();
+    }, []);
 
-        fetchDaysOfWeek();
-    }, []); */
-    // Обработчик отправки формы
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        
-        const requestBody = prepareRequestBody({
-            gender,
-            experience,
-            hasMedicalEducation,
-            worksWithInjuries,
-            workingDays,
-        });
-        
-        console.log('Тело запроса:', requestBody);
-        // Здесь можно добавить отправку на сервер
-        
-        alert('Данные успешно сохранены!');
-        navigate('/trainer_main');
+
+        if (!experience || isNaN(experience) || parseFloat(experience) < 0 || parseFloat(experience) > 10) {
+            alert('Пожалуйста, введите корректное значение стажа (от 0 до 10 лет).');
+            return;
+        }
+
+        if (!userData) {
+            alert('Данные пользователя не загружены.');
+            return;
+        }
+
+        try {
+            const trainerData = {
+                userId: userData.id,
+                experience: parseInt(experience, 10),
+                medicGrade: hasMedicalEducation === 'yes',
+                workInjuries: worksWithInjuries === 'yes',
+                workSportsmens: worksWithAthletes === 'yes',
+                trainingPrograms: trainingPrograms,
+                gymId: gymId,
+                description: description,
+            };
+
+            const createdTrainer = await createTrainer(trainerData);
+            console.log('Тренер успешно создан:', createdTrainer);
+            localStorage.setItem('id_trainer', createdTrainer);
+            navigate('/programs_selection');
+        } catch (error) {
+            console.error('Ошибка при создании тренера:', error);
+            alert('Не удалось создать тренера. Пожалуйста, попробуйте снова.');
+        }
     };
 
-    // Обработчик изменения дней приема клиентов
-    const handleWorkingDaysChange = (day) => () => {
-        setWorkingDays({ ...workingDays, [day]: !workingDays[day] });
-    };
 
-    // Обработчик выбора стажа
-    const handleExperienceChange = (value) => () => {
-        setExperience(value);
-    };
-
-    // Обработчик выбора для медицинского образования
-    const handleMedicalEducationChange = (value) => () => {
-        setHasMedicalEducation(value);
-    };
-
-    // Обработчик выбора для работы с травмами
-    const handleWorksWithInjuriesChange = (value) => () => {
-        setWorksWithInjuries(value);
-    };
-
-    // Обработчик кнопки "Назад"
-    const handleBack = () => {
-        navigate(-1); // Переход на предыдущую страницу
-    };
-
-    if (loading) {
-        return <Typography>Загрузка...</Typography>;
-    }
-
-    if (error) {
-        return <Typography color="error">{error}</Typography>;
-    }
+    if (loading) return <Typography>Загрузка...</Typography>;
+    if (error) return <Typography>{error}</Typography>;
 
     return (
-        <Container maxWidth="sm">
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold', mb: 4 }}>
-                    Дополните свой профиль
-                </Typography>
-
-                {/* Форма для ввода данных */}
-                <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-                    {/* Пол */}
-                    <FormControl fullWidth margin="normal" required>
-                        <InputLabel>Пол</InputLabel>
-                        <Select
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            label="Пол"
-                        >
-                            <MenuItem value="male">Мужской</MenuItem>
-                            <MenuItem value="female">Женский</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                    {/* Стаж */}
-                    <Typography variant="h6" sx={{ mt: 2 }}>
-                        Стаж
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
-                        {['1-3 года', '3-6 лет', 'Более 6 лет'].map((exp) => (
-                            <Grid item key={exp} xs={4}>
-                                <Button
-                                    fullWidth
-                                    variant={experience === exp ? 'contained' : 'outlined'}
-                                    onClick={handleExperienceChange(exp)}
-                                    sx={{
-                                        backgroundColor: experience === exp ? 'primary.main' : 'white',
-                                        color: experience === exp ? 'white' : 'primary.main',
-                                        borderColor: 'primary.main',
-                                        '&:hover': {
-                                            backgroundColor: experience === exp ? 'primary.dark' : 'primary.light',
-                                        },
-                                    }}
-                                >
-                                    {exp}
-                                </Button>
-                            </Grid>
+        <Container>
+            <Typography variant="h4" gutterBottom>
+                Дополните свой профиль
+            </Typography>
+            <form onSubmit={handleSubmit}>
+                {/* Пол */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="gender-label">Пол</InputLabel>
+                    <Select
+                        labelId="gender-label"
+                        id="gender-select"
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                    >
+                        {genders.map(({ id, value, label }) => (
+                            <MenuItem key={id} value={value}>{label}</MenuItem>
                         ))}
-                    </Grid>
+                    </Select>
+                </FormControl>
+                {/* Стаж (числовое поле) */}
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        id="experience-input"
+                        label="Стаж (лет)"
+                        type="number"
+                        inputProps={{ min: 0, max: 10 }}
+                        value={experience}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (!value || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
+                                setExperience(value);
+                            }
+                        }}
+                    />
+                </FormControl>
+                {/* Наличие медицинского образования */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="medical-education-label">Медицинское образование</InputLabel>
+                    <Select
+                        labelId="medical-education-label"
+                        id="medical-education-select"
+                        value={hasMedicalEducation}
+                        onChange={(e) => setHasMedicalEducation(e.target.value)}
+                    >
+                        <MenuItem value="yes">Да</MenuItem>
+                        <MenuItem value="no">Нет</MenuItem>
+                    </Select>
+                </FormControl>
+                {/* Работа с травмами */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Работа с травмами</InputLabel>
+                    <Select
+                        labelId="injuries-label"
+                        id="injuries-select"
+                        value={worksWithInjuries}
+                        onChange={(e) => setWorksWithInjuries(e.target.value)}
+                    >
+                        <MenuItem value="yes">Да</MenuItem>
+                        <MenuItem value="no">Нет</MenuItem>
+                    </Select>
+                </FormControl>
+                {/* Работа со спортсменами */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel id="athletes-label">Работа со спортсменами</InputLabel>
+                    <Select
+                        labelId="athletes-label"
+                        id="athletes-select"
+                        value={worksWithAthletes}
+                        onChange={(e) => setWorksWithAthletes(e.target.value)}
+                    >
+                        <MenuItem value="yes">Да</MenuItem>
+                        <MenuItem value="no">Нет</MenuItem>
+                    </Select>
+                </FormControl>
+                {/* Описание */}
+                <FormControl fullWidth margin="normal">
+                    <TextField
+                        id="description-input"
+                        label="Описание"
+                        multiline
+                        rows={4}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                </FormControl>
 
-                    {/* Наличие медицинского образования */}
-                    <Typography variant="h6" sx={{ mt: 2 }}>
-                        Наличие медицинского образования
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
-                        {['yes', 'no'].map((option) => (
-                            <Grid item key={option} xs={6}>
-                                <Button
-                                    fullWidth
-                                    variant={hasMedicalEducation === option ? 'contained' : 'outlined'}
-                                    onClick={handleMedicalEducationChange(option)}
-                                    sx={{
-                                        backgroundColor: hasMedicalEducation === option ? 'primary.main' : 'white',
-                                        color: hasMedicalEducation === option ? 'white' : 'primary.main',
-                                        borderColor: 'primary.main',
-                                        '&:hover': {
-                                            backgroundColor: hasMedicalEducation === option ? 'primary.dark' : 'primary.light',
-                                        },
-                                    }}
-                                >
-                                    {option === 'yes' ? 'Да' : 'Нет'}
-                                </Button>
-                            </Grid>
-                        ))}
-                    </Grid>
-
-                    {/* Работа с травмами */}
-                    <Typography variant="h6" sx={{ mt: 2 }}>
-                        Работа с травмами
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
-                        {['yes', 'no'].map((option) => (
-                            <Grid item key={option} xs={6}>
-                                <Button
-                                    fullWidth
-                                    variant={worksWithInjuries === option ? 'contained' : 'outlined'}
-                                    onClick={handleWorksWithInjuriesChange(option)}
-                                    sx={{
-                                        backgroundColor: worksWithInjuries === option ? 'primary.main' : 'white',
-                                        color: worksWithInjuries === option ? 'white' : 'primary.main',
-                                        borderColor: 'primary.main',
-                                        '&:hover': {
-                                            backgroundColor: worksWithInjuries === option ? 'primary.dark' : 'primary.light',
-                                        },
-                                    }}
-                                >
-                                    {option === 'yes' ? 'Да' : 'Нет'}
-                                </Button>
-                            </Grid>
-                        ))}
-                    </Grid>
-
-                    {/* В какие дни принимаете клиентов */}
-                    <Typography variant="h6" sx={{ mt: 2 }}>
-                        В какие дни принимаете клиентов
-                    </Typography>
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
-                        {daysOfWeek.map((day) => {
-                            const dayKey = day.toLowerCase(); // Преобразуем день в нижний регистр для использования в качестве ключа
-                            return (
-                                <Grid item key={dayKey} xs={4}>
-                                    <Button
-                                        fullWidth
-                                        variant={workingDays[dayKey] ? 'contained' : 'outlined'}
-                                        onClick={handleWorkingDaysChange(dayKey)}
-                                        sx={{
-                                            backgroundColor: workingDays[dayKey] ? 'primary.main' : 'white',
-                                            color: workingDays[dayKey] ? 'white' : 'primary.main',
-                                            borderColor: 'primary.main',
-                                            '&:hover': {
-                                                backgroundColor: workingDays[dayKey] ? 'primary.dark' : 'primary.light',
-                                            },
-                                        }}
-                                    >
-                                        {day}
-                                    </Button>
-                                </Grid>
-                            );
-                        })}
-                    </Grid>
-
-                    {/* Кнопка отправки формы и кнопка "Назад" */}
-                    <Box sx={{ mt: 4, width: '100%', display: 'flex', gap: 2 }}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            onClick={handleBack}
-                        >
-                            Назад
-                        </Button>
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            type="submit"
-                            sx={{ backgroundColor: 'primary.main' }}
-                        >
-                            Сохранить
-                        </Button>
-                    </Box>
+                {/* Кнопки управления */}
+                <Box display="flex" justifyContent="space-between" marginTop={2}>
+                    <Button variant="outlined" onClick={() => navigate(-1)}>
+                        Назад
+                    </Button>
+                    <Button type="submit" variant="contained" color="primary">
+                        Сохранить
+                    </Button>
                 </Box>
-            </Box>
+            </form>
         </Container>
     );
 }

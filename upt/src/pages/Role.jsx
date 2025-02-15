@@ -15,7 +15,7 @@ import {
 import InputMask from 'react-input-mask';
 import RoleSlider from '../components/RoleToggle'; // Импортируем кастомный слайдер
 import { getAllCities } from '../services/cityService'; // Импортируем функцию для получения городов
-import { getUserByEmail, updateUser } from '../services/userService'; // Импортируем готовые методы
+import { updateUser } from '../services/userService'; // Импортируем готовые методы
 
 function RoleSelectionPage() {
   const [role, setRole] = useState('client'); // Роль: 'client' или 'trainer'
@@ -108,9 +108,9 @@ function RoleSelectionPage() {
       // Формируем данные для обновления пользователя
       const userData = {
         id: localStorage.getItem("id_user"),
-        name:fullName,
+        name: fullName,
         phoneNumber,
-        emailAddress:localStorage.getItem('userEmail'),
+        emailAddress: localStorage.getItem('userEmail'),
         cityId: city, // Предполагается, что city - это ID города
         avatar
       };
@@ -122,7 +122,7 @@ function RoleSelectionPage() {
       if (role === 'client') {
         navigate('/client_info_add', { state: { ...userData, role } });
       } else if (role === 'trainer') {
-        navigate('/choose_plan', { state: { ...userData, role } });
+        navigate('/trainer_info_add', { state: { ...userData, role } });
       }
     } catch (error) {
       setError(error.message || 'Произошла ошибка при обновлении данных пользователя.');

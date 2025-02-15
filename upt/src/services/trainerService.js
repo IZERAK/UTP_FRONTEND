@@ -90,3 +90,14 @@ export const deleteTrainer = async (trainerId) => {
     throw new Error('Failed to delete trainer');
   }
 };
+
+export const accessToPublishTrainerNews = async (trainerId) => {
+  try {
+    const response = await apiClient.get('trainer/access-to-publish-news', {
+      params: { trainerId }, // Передаем параметр trainerId в запросе
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to delete trainer');
+  }
+};

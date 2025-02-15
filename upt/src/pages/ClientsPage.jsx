@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -8,49 +8,46 @@ import {
     Paper,
     Collapse,
     TextField,
-    IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-
-// Импортируем изображения
-import Trainer1 from '../assets/Тренер 1.jpg'
-import Trainer2 from '../assets/Тренер 2.jpg'
-import Trainer3 from '../assets/Тренер 3.jpg'
-import Trainer4 from '../assets/Тренер 4.jpg'
-
-
-// Случайные данные для клиентов
-const clients = [
-    {
-        id: 1,
-        name: 'Иванов Иван Иванович',
-        address: 'г. Москва, ул. Ленина, д. 10',
-        image: Trainer1,
-    },
-    {
-        id: 2,
-        name: 'Петров Петр Петрович',
-        address: 'г. Санкт-Петербург, ул. Пушкина, д. 5',
-        image: Trainer2,
-    },
-    {
-        id: 3,
-        name: 'Сидорова Анна Владимировна',
-        address: 'г. Екатеринбург, ул. Мира, д. 15',
-        image: Trainer3,
-    },
-    {
-        id: 4,
-        name: 'Козлова Елена Сергеевна',
-        address: 'г. Новосибирск, ул. Гагарина, д. 20',
-        image: Trainer4,
-    },
-];
+import { getClientById } from '../services/clientService'; // Импортируем метод для получения клиента
 
 function ClientsPage() {
-    // Состояние для отслеживания открытого чата
-    const [openChatId, setOpenChatId] = useState(null);
+    const [clients, setClients] = useState([]); // Состояние для хранения клиентов
+    const [openChatId, setOpenChatId] = useState(null); // Состояние для отслеживания открытого чата
+    const [loading, setLoading] = useState(true); // Состояние для отображения загрузки
+    const [error, setError] = useState(null); // Состояние для обработки ошибок
+
+    // Функция для выгрузки клиентов
+    const fetchClients = async () => {
+        const clientsList = [];
+        let clientId = 1;
+
+        while (true) {
+            try {
+                const client = await getClientById(clientId); // Запрашиваем клиента по ID
+                clientsList.push(client); // Добавляем клиента в список
+                clientId++; // Увеличиваем ID для следующего запроса
+            } catch (error) {
+                if (error.response && error.response.status === 400) {
+                    // Если сервер вернул ошибку 400, прерываем цикл
+                    break;
+                } else {
+                    setError(error.message); // Обрабатываем другие ошибки
+                    break;
+                }
+            }
+        }
+        console.log()
+        setClients(clientsList); // Сохраняем список клиентов в состояние
+        setLoading(false); // Убираем загрузку
+    };
+
+    // Загрузка клиентов при монтировании компонента
+    useEffect(() => {
+        fetchClients();
+    }, []);
 
     // Обработчик открытия/закрытия чата
     const handleChatToggle = (clientId) => {
@@ -60,6 +57,14 @@ function ClientsPage() {
             setOpenChatId(clientId); // Открыть чат для выбранного клиента
         }
     };
+
+    if (loading) {
+        return <Typography>Загрузка клиентов...</Typography>;
+    }
+
+    if (error) {
+        return <Typography color="error">Ошибка: {error}</Typography>;
+    }
 
     return (
         <Box sx={{ p: 3 }}>
@@ -80,17 +85,17 @@ function ClientsPage() {
                             justifyContent: 'space-between',
                         }}
                     >
-                        {/* Левая часть: аватар и информация */}
+                        {/* Левая часть: аватар, ФИО и цель */}
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Avatar
-                                src={client.image}
+                                src={client.avatar} // Используем поле avatar
                                 alt={client.name}
                                 sx={{ width: 80, height: 80, mr: 2 }}
                             />
                             <Box>
                                 <Typography variant="h6">{client.name}</Typography>
                                 <Typography variant="body2" color="textSecondary">
-                                    {client.address}
+                                    Цель: {client.goal} {/* Используем поле goal */}
                                 </Typography>
                             </Box>
                         </Box>

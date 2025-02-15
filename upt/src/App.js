@@ -51,7 +51,7 @@ function App() {
           <Route path="find-clients" element={<ClientsPage />} />
           <Route path="clients" element={<MyClients />} />
           <Route path="profile" element={<ProfileTrainer />} />
-          <Route index element={<ProgramsPage />} />
+          <Route index element={<ProfileTrainer />} />
         </Route>
 
       

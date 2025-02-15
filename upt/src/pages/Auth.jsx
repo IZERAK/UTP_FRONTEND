@@ -12,7 +12,9 @@ import {
   Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Хук для навигации
-import { loginUser } from '../services/authService'; // Импортируем сервис авторизации
+import { loginUser} from '../services/authService'; // Импортируем сервис авторизации
+import {getUserByEmail} from '../services/userService'
+
 
 function Auth() {
   const [email, setEmail] = useState('');
@@ -37,6 +39,8 @@ function Auth() {
     try {
       // Вызов функции авторизации
       const response = await loginUser(email, password); // Функция из authServices.js
+       const user = await getUserByEmail(email);
+                  localStorage.setItem('id_user', user.id);
       console.log('Ответ сервера:', response);
 
       // Если данные успешно получены, перенаправляем пользователя

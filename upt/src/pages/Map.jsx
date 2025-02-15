@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { YMaps, Map, Placemark } from '@pbe/react-yandex-maps';
 import { Box, Typography, TextField, InputAdornment, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { getAllGyms } from '../services/gymService'; 
-import { getTrainerById } from '../services/trainerService';
+import { getAllGyms } from '../services/gymService';
+import { getTrainerById, updateTrainer } from '../services/trainerService';
+import { useNavigate } from 'react-router-dom';
 
 function MapPage() {
     const [gyms, setGyms] = useState([]);
@@ -14,6 +15,7 @@ function MapPage() {
     const [selectedGym, setSelectedGym] = useState(null);
     const [trainer, setTrainer] = useState(null);
     const mapRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchGyms = async () => {
@@ -28,6 +30,21 @@ function MapPage() {
             }
         };
         fetchGyms();
+    }, []);
+
+    useEffect(() => {
+        const fetchTrainerData = async () => {
+            const trainerId = localStorage.getItem('id_trainer');
+            if (trainerId) {
+                try {
+                    const trainerData = await getTrainerById(trainerId);
+                    setTrainer(trainerData);
+                } catch (error) {
+                    console.error('Ошибка при загрузке данных тренера:', error);
+                }
+            }
+        };
+        fetchTrainerData();
     }, []);
 
     useEffect(() => {
@@ -61,15 +78,27 @@ function MapPage() {
     };
 
     const handleContinue = async () => {
-        if (selectedGym && selectedGym.trainerId) {
+        if (selectedGym && trainer) {
             try {
-                const trainerData = await getTrainerById(selectedGym.trainerId);
-                setTrainer(trainerData);
-            } catch (err) {
-                setError(err.message);
+                const updatedTrainer = {
+                    trainerId: trainer.id,
+                    experience: trainer.experience,
+                    medicGrade: trainer.medicGrade,
+                    workInjuries: trainer.workInjuries,
+                    workSportsmens: trainer.workSportsmens,
+                    trainingPrograms: trainer.trainingPrograms,
+                    clientsIds: trainer.clients,
+                    description: trainer.description,
+
+                    gymId: selectedGym.id,
+                };
+                await updateTrainer(updatedTrainer);
+                navigate('/choose_plan');
+            } catch (error) {
+                console.error('Ошибка при обновлении тренера:', error);
+                alert('Не удалось обновить тренера. Пожалуйста, попробуйте снова.');
             }
         }
-        console.log(selectedGym)
     };
 
     if (loading) {
@@ -124,7 +153,6 @@ function MapPage() {
                                 }}
                                 options={{
                                     preset: selectedGym?.id === gym.id ? 'islands#blueSportIcon' : 'islands#blueSportIcon',
-                                    
                                     iconImageSize: selectedGym?.id === gym.id ? [40, 40] : [30, 30],
                                 }}
                                 onClick={() => handlePlacemarkClick(gym)}
@@ -139,14 +167,6 @@ function MapPage() {
                     <Button variant="contained" onClick={handleContinue}>
                         Продолжить
                     </Button>
-                    {trainer && (
-                        <Box sx={{ mt: 2 }}>
-                            <Typography variant="h6">Информация о тренере:</Typography>
-                            <Typography>Имя: {trainer.name}</Typography>
-                            <Typography>Специализация: {trainer.specialization}</Typography>
-                            <Typography>Опыт: {trainer.experience} лет</Typography>
-                        </Box>
-                    )}
                 </Box>
             )}
         </Box>

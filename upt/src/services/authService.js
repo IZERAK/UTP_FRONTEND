@@ -27,12 +27,7 @@ export const loginUser = async (emailAddress, password) => {
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('userEmail', emailAddress);
-      setTimeout(300)
-      if (localStorage.getItem('accessToken')) {
-        const user = await getUserByEmail(emailAddress);
-        localStorage.setItem('id_user', user.id);
-        return response.data;
-      } // Возвращаем данные для дальнейшего использования
+      return response.data;
     } else {
       throw new Error('Invalid response data from server');
     }

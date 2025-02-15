@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Grid, Link, CircularProgress, Snackbar, Alert } from '@mui/material';
-import { registerUser,loginUser } from '../services/authService'; // Путь может отличаться
+import { registerUser,loginUser, } from '../services/authService'; // Путь может отличаться
 import { useNavigate } from 'react-router-dom';
+import {getUserByEmail} from '../services/userService'
+
 
 function RegistrationForm() {
     const [email, setEmail] = useState('');
@@ -34,12 +36,16 @@ function RegistrationForm() {
             // Регистрация пользователя
             await registerUser(email, password);
 
+
             // Авторизация пользователя после успешной регистрации
             const loginResponse = await loginUser(email, password);
             console.log('Ответ сервера при авторизации:', loginResponse);
+    
 
             // Устанавливаем успешную регистрацию и авторизацию
             setSuccess(true);
+            const user = await getUserByEmail(localStorage.getItem('userEmail'));
+            localStorage.setItem('id_user', user.id);
 
             // Перенаправляем на страницу выбора роли
             navigate('/role'); // Замените на ваш путь

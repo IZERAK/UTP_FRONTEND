@@ -8,9 +8,12 @@ import {
     Paper,
     ToggleButtonGroup,
     ToggleButton,
+    Button
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { deleteUser } from '../services/userService';
+import { useNavigate } from 'react-router-dom';
 
 function ProfilePage() {
     // Состояние для настроек
@@ -20,10 +23,28 @@ function ProfilePage() {
         changeTariff: 'Нет',
         deleteAccount: 'Нет',
     });
-
+    const navigate = new useNavigate()
     // Обработчик изменения настроек
     const handleSettingChange = (setting, value) => {
-        setSettings(prev => ({...prev, [setting]: value}));
+        setSettings(prev => ({ ...prev, [setting]: value }));
+    };
+
+    const handlePlan=()=>{
+        try{
+            navigate('/choose_plan')
+        }
+        catch{
+
+        }
+    }
+    const handleDelete = async () => { // Добавляем async
+        try {
+            await deleteUser(localStorage.getItem('id_user')); // Ожидаем выполнение запроса
+            localStorage.clear();
+            navigate('/auth'); // Правильный вызов navigate
+        } catch (error) {
+            console.error("Ошибка при удалении аккаунта:", error);
+        }
     };
 
     // Данные платежей
@@ -153,32 +174,14 @@ function ProfilePage() {
                         </Box>
 
                         {/* Сменить тариф */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography>Сменить тариф</Typography>
-                            <ToggleButtonGroup
-                                color="primary"
-                                value={settings.changeTariff}
-                                exclusive
-                                onChange={(e, val) => val && handleSettingChange('changeTariff', val)}
-                            >
-                                <ToggleButton value="Да">Да</ToggleButton>
-                                <ToggleButton value="Нет">Нет</ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
+                        <Button onClick={handlePlan} sx={{ backgroundColor: '#1976d2', color: 'white' }}>
+                            Сменить тариф
+                        </Button>
 
                         {/* Удалить аккаунт */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography>Удалить аккаунт</Typography>
-                            <ToggleButtonGroup
-                                color="primary"
-                                value={settings.deleteAccount}
-                                exclusive
-                                onChange={(e, val) => val && handleSettingChange('deleteAccount', val)}
-                            >
-                                <ToggleButton value="Да">Да</ToggleButton>
-                                <ToggleButton value="Нет">Нет</ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
+                        <Button onClick={handleDelete} sx={{ backgroundColor: 'red', color: 'white' }}>
+                            Удалить аккаунт
+                        </Button>
                     </Box>
                 </AccordionDetails>
             </Accordion>

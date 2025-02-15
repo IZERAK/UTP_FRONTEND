@@ -65,10 +65,9 @@ function PayPage() {
             const response = await addPayment(amount, purchasedProduct, title, userId);
 
             console.log('Результат оплаты:', response); // Логируем результат
-            alert(`Оплата плана "${selectedPlan}" через ${banks.find((b) => b.id === selectedBank).name} прошла успешно!`);
             localStorage.removeItem('selectedPlan'); // Получаем ID пользователя из локального хранилища
             localStorage.removeItem('selectedPlanPrice');
-            navigate('/trainer_info_add'); // Переход на страницу после оплаты
+            navigate('/trainer_main'); // Переход на страницу после оплаты
         } catch (error) {
             console.error('Ошибка при оплате:', error.message || error);
             alert('Произошла ошибка при оплате. Попробуйте снова.');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -13,7 +13,23 @@ import {
     List,
     ListItem,
     ListItemText,
+
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    ListItemIcon
 } from '@mui/material';
+
+import {
+    Notifications,
+    ExitToApp,
+    InfoOutlined,
+    CheckCircleOutline,
+    WarningAmberOutlined,
+    ErrorOutline,
+} from '@mui/icons-material';
+
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -22,10 +38,13 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { getUncheckedNotifications, markNotificationAsChecked } from '../services/notificationService';
 
 function MainTrainer() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
 
     // Состояние для выпадающего меню уведомлений
     const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
@@ -35,13 +54,51 @@ function MainTrainer() {
     const [clientsAnchorEl, setClientsAnchorEl] = useState(null);
     const clientsOpen = Boolean(clientsAnchorEl);
 
-    // Тестовые данные для уведомлений
-    const notifications = [
-        { id: 1, text: 'Новый клиент записался на тренировку.' },
-        { id: 2, text: 'Оплата за тренировку прошла успешно.' },
-        { id: 3, text: 'Новое сообщение от клиента.' },
-        { id: 4, text: 'Запланировано мероприятие на следующую неделю.' },
-    ];
+    // Загрузка непрочитанных уведомлений при открытии диалогового окна
+    useEffect(() => {
+        if (dialogOpen) {
+            fetchUncheckedNotifications();
+        }
+    }, [dialogOpen]);
+
+    const fetchUncheckedNotifications = async () => {
+        try {
+            const uncheckedNotifications = await getUncheckedNotifications(localStorage.getItem('id_user'));
+            setNotifications(uncheckedNotifications);
+        } catch (error) {
+            console.error('Ошибка при загрузке уведомлений:', error);
+        }
+    };
+    
+    const handleCloseDialog = async () => {
+            // Пометить все уведомления как прочитанные
+            try {
+                await Promise.all(notifications.map(notification => markNotificationAsChecked(notification.id)));
+                setNotifications([]); // Очищаем список уведомлений
+            } catch (error) {
+                console.error('Ошибка при пометке уведомлений как прочитанных:', error);
+            }
+            setDialogOpen(false);
+        };
+
+    const handleOpenDialog = () => {
+        setDialogOpen(true);
+    };
+
+    const getIconBySeverity = (severity) => {
+        switch (severity) {
+            case 'info':
+                return <InfoOutlined color="primary" />;
+            case 'success':
+                return <CheckCircleOutline color="success" />;
+            case 'warning':
+                return <WarningAmberOutlined color="warning" />;
+            case 'error':
+                return <ErrorOutline color="error" />;
+            default:
+                return <InfoOutlined color="primary" />;
+        }
+    };
 
     // Обработчик выхода из системы
     const handleLogout = () => {
@@ -78,6 +135,7 @@ function MainTrainer() {
     // Список пунктов меню с иконками
     const menuItems = [
         { id: 'news', text: 'Новости', path: 'news', icon: <HomeIcon /> },
+        { id: 'programs', text: 'Программы', path: 'programs', icon: <FitnessCenterIcon /> },
         { id: 'profile', text: 'Профиль', path: 'profile', icon: <PersonIcon /> },
     ];
 
@@ -152,10 +210,8 @@ function MainTrainer() {
                     </Box>
 
                     {/* Иконка уведомлений */}
-                    <IconButton color="inherit" onClick={handleNotificationsOpen}>
-                        <Badge badgeContent={notifications.length} color="error">
-                            <NotificationsIcon />
-                        </Badge>
+                    <IconButton color="inherit" onClick={handleOpenDialog}>
+                        <Notifications />
                     </IconButton>
 
                     {/* Окно уведомлений */}
@@ -202,6 +258,32 @@ function MainTrainer() {
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}> {/* mt: 8 для отступа под AppBar */}
                 <Outlet /> {/* Здесь будут отображаться вложенные маршруты */}
             </Box>
+
+            {/* Диалоговое окно для уведомлений */}
+            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+                <DialogTitle>Уведомления</DialogTitle>
+                <DialogContent>
+                    {notifications.length === 0 ? ( // Проверяем, есть ли клиенты
+                        <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+                            Уведомлений нет
+                        </Typography>
+                    ) : (
+                        <List>
+                            {notifications.map((notification) => (
+                                <ListItem key={notification.id} sx={{ py: 0.5, top: 0 }}>
+                                    <ListItemIcon>{getIconBySeverity(notification.severity)}</ListItemIcon>
+                                    <ListItemText primary={notification.text} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="primary">
+                        Закрыть
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

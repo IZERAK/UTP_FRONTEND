@@ -14,9 +14,9 @@ export const chatGetHistory = async (senderUserId,recipientUserId
 };
 
 // Получить список всех залов
-export const chatAddMsg = async () => {
+export const chatAddMsg = async (newMessage) => {
   try {
-    const response = await apiClient.get('/chat/add');
+    const response = await apiClient.post('/chat/add', newMessage);
     return response.data;
   } catch (error) {
     throw new Error('Failed to fetch all gyms');

@@ -87,8 +87,9 @@ useEffect(() => {
         avatar: userData.avatarUrl
       };
       
+
       if (userData.avatarUrl) {
-        userFormData.avatar = userData.avatarFile;
+        userFormData.avatar = userData.avatarUrl;
       }
 
       await updateUser(userFormData);
@@ -169,12 +170,15 @@ const handleDelete = async () => { // Добавляем async
           </Grid>
         </Grid>                
 
-  {/* Сменить тариф */}
-      <Box sx={{ mt: 3 }}>
-          <Button onClick={handlePlan} variant="contained" fullWidth sx={{ backgroundColor: '#1976d2', color: 'white' }}>
-              Сменить тариф
-          </Button>
-      </Box>
+      {/* Сменить тариф */}
+      {localStorage.getItem('id_trainer') && (
+        <Box sx={{ mt: 3 }}>
+              <Button onClick={handlePlan} variant="contained" fullWidth sx={{ backgroundColor: '#1976d2', color: 'white' }}>
+                  Сменить тариф
+              </Button>
+          </Box>
+      )}
+      
 
         {/* Кнопка для удаления аккаунта */}
         <Box sx={{ mt: 3 }}>

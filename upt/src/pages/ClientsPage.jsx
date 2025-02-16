@@ -292,7 +292,6 @@ function ClientsPage() {
                                                 );
                                             })}
                                         </Box>
-                                        Объяснен
                                         <Box sx={{ display: 'flex', gap: 1 }}>
                                             <TextField
                                                 fullWidth

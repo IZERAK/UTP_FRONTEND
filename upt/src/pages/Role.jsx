@@ -115,7 +115,7 @@ function RoleSelectionPage() {
         phoneNumber,
         emailAddress: localStorage.getItem('userEmail'),
         cityId: city, // Предполагается, что city - это ID города
-        avatar
+        avatar: avatar
       };
 
       // Обновляем данные пользователя
@@ -124,12 +124,12 @@ function RoleSelectionPage() {
 
       // Переход на страницу в зависимости от роли
       if (role === 'client') {
-        const client = await getClientByUserId(localStorage.getItem('id_user'));
-        localStorage.setItem('id_client', client.id)
+        //const client = await getClientByUserId(localStorage.getItem('id_user'));
+        //localStorage.setItem('id_client', client.id)
         navigate('/client_info', { state: { ...userData, role } });
       } else if (role === 'trainer') {
-        const trainer = await getTrainerByUserId(localStorage.getItem('id_user'));
-        localStorage.setItem('id_trainer', trainer.id)
+        //const trainer = await getTrainerByUserId(localStorage.getItem('id_user'));
+        //localStorage.setItem('id_trainer', trainer.id)
         navigate('/trainer_info_add', { state: { ...userData, role } });
       }
     } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -13,19 +13,87 @@ import {
   DialogTitle,
 } from '@mui/material';
 import { Notifications, MailOutline } from '@mui/icons-material';
+import { getUserById, updateUser } from '../services/userService';
 
 const SettingsClients = () => {
   const [notifications, setNotifications] = useState(false);
   const [newsletter, setNewsletter] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+    const [userData, setUserData] = useState({
+      id: 0,
+      name: '',
+      phone: '',
+      email: '',
+      gender: 'None',
+      avatarUrl: null,
+      avatarFile: null,
+      cityId: 0,
+      isNotificationEnable: true,
+      isEmailNotificationEnable: true,
+    });
+
+useEffect(() => {
+    // Получаем ID текущего пользователя из localStorage
+    const userId = localStorage.getItem('id_user');
+      // Загрузка данных с API
+      Promise.all([getUserById(userId)])
+        .then(([userResponse]) => {
+          const user = userResponse;
+
+          setNewsletter(userResponse.isNotificationEnable);
+          setNotifications(userResponse.isEmailNotificationEnable);
+          setUserData({
+            id: user.id,
+            name: user.name,
+            phone: user.phoneNumber,
+            email: user.emailAddress,
+            gender: user.gender,
+            avatarUrl: user.avatar, 
+            cityId: user.city.id,
+            isNotificationEnable: user.isNotificationEnable,
+            isEmailNotificationEnable: user.isEmailNotificationEnable,
+          });
+        })
+        .catch(error => {
+          console.error('Ошибка при загрузке данных:', error);
+        });
+  }, []);
 
   // Обработчики для переключателей
-  const handleNotificationsChange = (event) => {
+  const handleNotificationsChange = async (event) => {
     setNotifications(event.target.checked);
+    await saveChanges(event.target.checked, newsletter);
   };
 
-  const handleNewsletterChange = (event) => {
+  const handleNewsletterChange = async (event) => {
     setNewsletter(event.target.checked);
+    await saveChanges(notifications, event.target.checked);
+  };
+
+  const saveChanges = async (isEmailNotification, isNotification) => {
+    try {
+      
+      const userFormData = {
+        id: localStorage.getItem("id_user"),
+        name: userData.name,
+        phoneNumber: userData.phone,
+        emailAddress: localStorage.getItem('userEmail'),
+        cityId: userData.cityId, // Предполагается, что city - это ID города
+        gender: userData.gender,
+        isNotificationEnable: isNotification,
+        isEmailNotificationEnable: isEmailNotification,
+        avatar: userData.avatarUrl
+      };
+      
+      if (userData.avatarUrl) {
+        userFormData.avatar = userData.avatarFile;
+      }
+
+      await updateUser(userFormData);
+    } catch (error) {
+      console.error('Ошибка при сохранении изменений:', error);
+      alert('Не удалось сохранить изменения.');
+    }
   };
 
   // Открытие и закрытие модального окна

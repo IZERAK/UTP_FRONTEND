@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { getGenders } from '../services/infrastructureService.js';
 import { getUserByEmail, updateUser } from '../services/userService.js';
-import { createClient } from '../services/clientService.js';
+import { createClient, updateClient } from '../services/clientService.js';
 import { getAllCities } from '../services/cityService.js';
 import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
@@ -111,7 +111,8 @@ const ClientInfo = () => {
                 phoneNumber: userPhone, // Передаем существующий телефон
                 gender: gender, // Обновляем выбранный гендер
                 cityId: cityId, // Сохраняем существующий ID города
-                emailAddress: userEmail // Передаем email пользователя
+                emailAddress: userEmail, // Передаем email пользователя
+                avatar: userData.avatar
             };
 
             // Вызываем функцию обновления данных пользователя
@@ -122,11 +123,11 @@ const ClientInfo = () => {
                 userId: userData.id, // ID пользователя
                 height: height, // Рост
                 weight: weight, // Вес
-                chest: chest, // Объем груди
-                waist: waist, // Объем талии
-                stomach: stomach, // Объем живота
-                hips: hips, // Объем ягодиц
-                thighs: thighs // Объем бедер
+                volumeBreast: chest, // Объем груди
+                volumeWaist: waist, // Объем талии
+                volumeAbdomen: stomach, // Объем живота
+                volumeButtock: hips, // Объем ягодиц
+                volumeHip: thighs // Объем бедер
             };
 
             // Вызываем метод addClient для создания клиента
@@ -162,7 +163,6 @@ const ClientInfo = () => {
             alignItems="center"
             justifyContent="center"
             minHeight="100vh"
-            sx={{ backgroundColor: '#f5f5f5' }}
         >
             <Box sx={{ width: '600px', padding: '20px', borderRadius: '10px', backgroundColor: 'white' }}>
                 <Typography variant="h4" gutterBottom align="center" data-cy="client-info-title">

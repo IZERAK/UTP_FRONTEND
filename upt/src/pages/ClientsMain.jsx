@@ -24,10 +24,11 @@ import {
     WarningAmberOutlined,
     ErrorOutline,
 } from '@mui/icons-material';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { getUncheckedNotifications, markNotificationAsChecked } from '../services/notificationService';
 
 const ClientMain = () => {
+    const navigate = useNavigate();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
@@ -49,6 +50,12 @@ const ClientMain = () => {
 
     const handleOpenDialog = () => {
         setDialogOpen(true);
+    };
+
+    // Обработчик выхода из системы
+    const handleLogout = () => {
+        localStorage.clear() // Удаляем refresh-токен
+        navigate('/auth'); // Переход на страницу входа
     };
 
     const handleCloseDialog = async () => {
@@ -98,7 +105,7 @@ const ClientMain = () => {
                     <IconButton color="inherit" onClick={handleOpenDialog}>
                         <Notifications />
                     </IconButton>
-                    <IconButton color="inherit">
+                    <IconButton color="inherit" onClick={handleLogout}>
                         <ExitToApp />
                     </IconButton>
                 </Toolbar>

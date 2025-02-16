@@ -140,7 +140,7 @@ function NewsPage() {
               filteredNews.map((news) => (
                 <ListItem key={news.id} sx={{ border: '1px solid rgb(25 118 210)', p: 2, borderRadius: '20px', margin: '5px' }}>
                   {news.image && <Avatar src={news.image} sx={{ mr: 2 }} />}
-                  <ListItemText primary={news.text} secondary={news.text} />
+                  <ListItemText primary={news.name} secondary={news.text} />
                 </ListItem>
               ))
             ) : (

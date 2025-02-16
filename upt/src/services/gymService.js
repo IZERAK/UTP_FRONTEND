@@ -12,6 +12,18 @@ export const getGymById = async (id) => {
   }
 };
 
+// Получить залы с тренерами
+export const getAllWithTrainers = async (id) => {
+  try {
+    const response = await apiClient.get('/gym/get-all-with-trainers', {
+      params: { id }, // Передаем параметр id в запросе
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch gym');
+  }
+};
+
 // Получить список всех залов
 export const getAllGyms = async () => {
   try {

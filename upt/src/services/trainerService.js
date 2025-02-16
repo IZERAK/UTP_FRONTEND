@@ -34,6 +34,16 @@ export const getTrainers = async () => {
   }
 };
 
+export const getClientTrainer = async (clientId) => {
+  try {
+    const response = await apiClient.get('client/get-trainer', {
+      params: { clientId }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch trainer by user ID');
+  }
+};
 
 // Получить отфильтрованных тренеров
 export const getFilteredTrainers = async (filterRequest) => {
@@ -66,12 +76,9 @@ export const updateTrainer = async (trainerData) => {
 };
 
 // Назначить клиентов тренеру
-export const setClientsToTrainer = async (trainerId, clientIds) => {
+export const setClientsToTrainer = async (data) => {
   try {
-    const response = await apiClient.put('/trainer/set-clients', {
-      trainerId,
-      clientIds,
-    });
+    const response = await apiClient.put('/trainer/set-clients', data);
     return response.data;
   } catch (error) {
     throw new Error('Failed to set clients to trainer');

@@ -24,16 +24,12 @@ import ProgramsSelectionTrainer from './pages/ProgramsSelectionTrainer'
 import ClientInfo from './pages/ClientInfo';
 import ClientMain from './pages/ClientsMain'
 import ClientNews from './pages/ClientsNews';
-import ClientProgram from './pages/ClinetProgram';
-import ClientMap from './pages/ClinetMap';
+import ClientGoal from './pages/ClientGoal';
 import ClientListGym from './pages/ClientListGym';
-import ClientTarinerList from './pages/ClientTarinerList';
 import ClientsTrainerPage from './pages/ClientTrainerPage';
 import ClientProfile from './pages/ClientProfile';
 import ClientTarinerProfile from './pages/ClientTrainerProfile';
-
-
-
+import ClientMap from './pages/ClinetMap';
 
 function App() {
   return (
@@ -56,12 +52,12 @@ function App() {
         <Route path="/client_info" element={<ClientInfo />} />
         <Route path="/client_main" element={<ClientMain />}>
           <Route path="news" element={<ClientNews />} />
-          <Route path='programs' element={<ClientProgram />} />
+          <Route path='goal' element={<ClientGoal />} />
           <Route path='map' element={<ClientMap />} />
           <Route path='list-gym' element={<ClientListGym />} />
-          <Route path='list-trainer' element={<ClientTarinerList />} />
           <Route path='trainer-profile' element={<ClientTarinerProfile />} />
           <Route path='trainers' element={<ClientsTrainerPage />} />
+          <Route path='client-map-page' element={<ClientMap />} />
           <Route path='profile' element={<ClientProfile />} />
         </Route>
 

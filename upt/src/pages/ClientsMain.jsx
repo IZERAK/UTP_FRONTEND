@@ -92,11 +92,14 @@ const ClientMain = () => {
                         <Button component={Link} to="news" color="inherit">
                             Новости
                         </Button>
-                        <Button component={Link} to="programs" color="inherit">
-                            Программы
+                        <Button component={Link} to="goal" color="inherit">
+                            Цель
                         </Button>
                         <Button component={Link} to="trainers" color="inherit">
                             Тренера
+                        </Button>
+                        <Button component={Link} to="client-map-page" color="inherit">
+                            Карта
                         </Button>
                         <Button component={Link} to="profile" color="inherit">
                             Профиль

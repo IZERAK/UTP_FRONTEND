@@ -16,8 +16,6 @@ import InputMask from 'react-input-mask';
 import RoleSlider from '../components/RoleToggle'; // Импортируем кастомный слайдер
 import { getAllCities } from '../services/cityService'; // Импортируем функцию для получения городов
 import { updateUser } from '../services/userService'; // Импортируем готовые методы
-import {getClientByUserId} from '../services/clientService'
-import {getTrainerByUserId} from '../services/trainerService'
 
 
 function RoleSelectionPage() {

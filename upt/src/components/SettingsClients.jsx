@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Grid,
@@ -13,9 +14,10 @@ import {
   DialogTitle,
 } from '@mui/material';
 import { Notifications, MailOutline } from '@mui/icons-material';
-import { getUserById, updateUser } from '../services/userService';
+import { getUserById, updateUser, deleteUser } from '../services/userService';
 
 const SettingsClients = () => {
+    const navigate = useNavigate(); // Хук для навигации
   const [notifications, setNotifications] = useState(false);
   const [newsletter, setNewsletter] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -105,11 +107,25 @@ useEffect(() => {
     setOpenDialog(false);
   };
 
-  const handleDeleteAccount = () => {
-    // Здесь можно добавить логику для удаления аккаунта
-    alert('Аккаунт удалён!');
-    setOpenDialog(false);
-  };
+  const handlePlan=()=>{
+    try{
+        navigate('/choose_plan')
+    }
+    catch{
+
+    }
+}
+const handleDelete = async () => { // Добавляем async
+    try {
+        await deleteUser(localStorage.getItem('id_user')); // Ожидаем выполнение запроса
+        localStorage.clear();
+        alert('Аккаунт удалён!');
+        setOpenDialog(false);
+        navigate('/auth'); // Правильный вызов navigate
+    } catch (error) {
+        console.error("Ошибка при удалении аккаунта:", error);
+    }
+};
 
   return (
     <Container>
@@ -151,7 +167,14 @@ useEffect(() => {
           <Grid item xs={12} sm={6}>
             <MailOutline color="primary" />
           </Grid>
-        </Grid>
+        </Grid>                
+
+  {/* Сменить тариф */}
+      <Box sx={{ mt: 3 }}>
+          <Button onClick={handlePlan} variant="contained" fullWidth sx={{ backgroundColor: '#1976d2', color: 'white' }}>
+              Сменить тариф
+          </Button>
+      </Box>
 
         {/* Кнопка для удаления аккаунта */}
         <Box sx={{ mt: 3 }}>
@@ -181,7 +204,7 @@ useEffect(() => {
           <Button onClick={handleCloseDialog} color="primary">
             Отменить
           </Button>
-          <Button onClick={handleDeleteAccount} color="error">
+          <Button onClick={handleDelete} color="error">
             Удалить
           </Button>
         </DialogActions>

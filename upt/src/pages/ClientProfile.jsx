@@ -116,7 +116,7 @@ const ClientProfile = () => {
       };
       
       if (userData.avatarUrl) {
-        userFormData.avatar = userData.avatarFile;
+        userFormData.avatar = userData.avatarUrl;
       }
 
       await updateUser(userFormData);

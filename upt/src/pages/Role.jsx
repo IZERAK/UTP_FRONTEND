@@ -16,6 +16,9 @@ import InputMask from 'react-input-mask';
 import RoleSlider from '../components/RoleToggle'; // Импортируем кастомный слайдер
 import { getAllCities } from '../services/cityService'; // Импортируем функцию для получения городов
 import { updateUser } from '../services/userService'; // Импортируем готовые методы
+import {getClientByUserId} from '../services/clientService'
+import {getTrainerByUserId} from '../services/trainerService'
+
 
 function RoleSelectionPage() {
   const [role, setRole] = useState('client'); // Роль: 'client' или 'trainer'
@@ -118,10 +121,15 @@ function RoleSelectionPage() {
       // Обновляем данные пользователя
       await updateUser(userData);
 
+
       // Переход на страницу в зависимости от роли
       if (role === 'client') {
-        navigate('/client_info_add', { state: { ...userData, role } });
+        const client = await getClientByUserId(localStorage.getItem('id_user'));
+        localStorage.setItem('id_client', client.id)
+        navigate('/client_info', { state: { ...userData, role } });
       } else if (role === 'trainer') {
+        const trainer = await getTrainerByUserId(localStorage.getItem('id_user'));
+        localStorage.setItem('id_trainer', trainer.id)
         navigate('/trainer_info_add', { state: { ...userData, role } });
       }
     } catch (error) {

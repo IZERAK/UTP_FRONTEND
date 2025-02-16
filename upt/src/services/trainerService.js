@@ -24,6 +24,17 @@ export const getTrainerByUserId = async (userId) => {
   }
 };
 
+export const getTrainers = async () => {
+  try {
+    const response = await apiClient.get('/trainer/get-all', {
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch trainer by user ID');
+  }
+};
+
+
 // Получить отфильтрованных тренеров
 export const getFilteredTrainers = async (filterRequest) => {
   try {

@@ -1,141 +1,191 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import {
-  TextField,
-  Button,
-  Container,
-  Typography,
-  Box,
-  Grid,
-  Link,
-  CircularProgress,
-  Snackbar,
-  Alert,
+    Box,
+    TextField,
+    Button,
+    Typography,
+    Link,
+    Card,
+    CardContent,
+    InputAdornment,
+    Snackbar,
+    Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Хук для навигации
-import { loginUser} from '../services/authService'; // Импортируем сервис авторизации
-import {getUserByEmail} from '../services/userService'
+import { Link as RouterLink } from 'react-router-dom';
+import { Email, Lock, Person } from '@mui/icons-material';
+import { loginUser } from '../services/authService';
+import { getUserByEmail } from '../services/userService';
+import { getClientByUserId } from '../services/clientService';
+import { getTrainerByUserId } from '../services/trainerService';
 
+import { useNavigate } from 'react-router-dom';
 
-function Auth() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Хук для навигации
+const Login = () => {
+    const [emailAddress, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+    const navigate = useNavigate();
 
-  // Обработчик отправки формы авторизации
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+          
+            const loginResponse = await loginUser( emailAddress, password );
 
-    // Проверка на пустые поля
-    if (!email || !password) {
-      setError('Все поля обязательны для заполнения!');
-      return;
-    }
+            // Сохраняем токены в localStorage
+            localStorage.setItem('accessToken', loginResponse.accessToken);
+            localStorage.setItem('refreshToken', loginResponse.refreshToken);
+            localStorage.setItem('userEmail', emailAddress);
 
-    setLoading(true);
-    setError(null);
+            // Получаем ID пользователя по email
+            const userIdResponse = await getUserByEmail(emailAddress);
+            localStorage.setItem('id_user', userIdResponse.id); // Предполагается, что такой метод уже существует
+            const userId = userIdResponse.id;
 
-    try {
-      // Вызов функции авторизации
-      const response = await loginUser(email, password); // Функция из authServices.js
-       const user = await getUserByEmail(email);
-                  localStorage.setItem('id_user', user.id);
-      console.log('Ответ сервера:', response);
+            if (!userId) {
+                throw new Error('Пользователь не найден');
+            }
 
-      // Если данные успешно получены, перенаправляем пользователя
-      navigate('/role'); // Перенаправление на страницу "Выберите роль"
-    } catch (error) {
-      // Обработка ошибок
-      setError(error.message || 'Произошла ошибка при авторизации. Пожалуйста, попробуйте снова.');
-    } finally {
-      setLoading(false);
-    }
-  };
+            // Проверяем, является ли пользователь клиентом
+            let isClient = false;
+            try {
+                const clinet = await getClientByUserId(userId);
+                localStorage.setItem('id_client', clinet.id)
+                isClient = true;
+            } catch (error) {
+                console.log('Пользователь не является клиентом:', error.message);
+            }
 
-  // Обработчик перехода на страницу регистрации
-  const handleRegister = () => {
-    navigate('/register');
-  };
+            // Если пользователь не клиент, проверяем, является ли он тренером
+            if (!isClient) {
+                try {
+                    const trainer = await getTrainerByUserId(userId);
+                    localStorage.setItem('id_trainer', trainer.id)
+                } catch (error) {
+                    throw new Error('Пользователь не является ни клиентом, ни тренером');
+                }
+            }
 
-  // Обработчик перехода на страницу восстановления пароля
-  const handleForgotPassword = () => {
-    localStorage.removeItem('userEmail')
-    navigate('/forgot_password');
-  };
+            // Уведомление об успешной авторизации
+            setSnackbarMessage('Авторизация успешна!');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
 
-  // Закрытие уведомления об ошибке
-  const handleCloseSnackbar = () => {
-    setError(null);
-  };
+            // Перенаправляем пользователя на соответствующую страницу
+            setTimeout(() => {
+                if (isClient) {
+                    navigate('/client_main'); // Страница клиента
+                } else {
+                    navigate('/trainer_main'); // Страница тренера
+                }
+            }, 1000);
+        } catch (err) {
+            setSnackbarMessage(err.message || 'Ошибка авторизации');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        }
+    };
 
-  return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Авторизация
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Пароль"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Grid>
-          </Grid>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Войти'}
-          </Button>
-          <Grid container justifyContent="space-between">
-            <Grid item>
-              <Link href="#" variant="body2" onClick={handleForgotPassword}>
-                Забыли пароль?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2" onClick={handleRegister}>
-                Нет аккаунта? Зарегистрироваться
-              </Link>
-            </Grid>
-          </Grid>
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
+    };
+
+    return (
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            minHeight="100vh"
+            sx={{ backgroundColor: '#f5f5f5' }}
+        >
+            <Card sx={{ width: '400px', padding: '20px', borderRadius: '10px' }}>
+                <CardContent>
+                    <Typography variant="h4" gutterBottom align="center" data-cy="login-title">
+                        Авторизация
+                    </Typography>
+                    {/* Поле для почты */}
+                    <TextField
+                        label="Почта"
+                        type="email"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={emailAddress}
+                        onChange={(e) => setEmail(e.target.value)}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Email color="primary" />
+                                </InputAdornment>
+                            ),
+                        }}
+                        inputProps={{ 'data-cy': 'emailAddress-input' }} // Селектор для Cypress
+                    />
+                    {/* Поле для пароля */}
+                    <TextField
+                        label="Пароль"
+                        type="password"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Lock color="primary" />
+                                </InputAdornment>
+                            ),
+                        }}
+                        inputProps={{ 'data-cy': 'password-input' }} // Селектор для Cypress
+                    />
+                    {/* Кнопка "Войти" */}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{ mt: 2, mb: 2 }}
+                        startIcon={<Person color="inherit" />}
+                        data-cy="login-button" // Селектор для Cypress
+                        onClick={handleSubmit}
+                    >
+                        Войти
+                    </Button>
+                    {/* Ссылка на страницу регистрации */}
+                    <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+                        Нет аккаунта?{' '}
+                        <Link component={RouterLink} to="/register" color="primary" data-cy="register-link">
+                            Зарегистрируйтесь
+                        </Link>
+                    </Typography>
+                    {/* Ссылка "Забыли пароль" */}
+                    <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+                        <Link component={RouterLink} to="/forgot-password" color="primary" data-cy="forgot-password-link">
+                            Забыли пароль?
+                        </Link>
+                    </Typography>
+                </CardContent>
+            </Card>
+            {/* Snackbar для уведомлений */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
-        {/* Уведомление об ошибке */}
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-          <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
-            {error}
-          </Alert>
-        </Snackbar>
-      </Box>
-    </Container>
-  );
-}
+    );
+};
 
-export default Auth;
+export default Login;

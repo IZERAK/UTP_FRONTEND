@@ -51,7 +51,7 @@ function PayPage() {
             const userId = localStorage.getItem('id_user'); // Получаем ID пользователя из локального хранилища
             const amount = localStorage.getItem('selectedPlanPrice'); // Используем цену напрямую
             const purchasedProduct = localStorage.getItem('selectedPlan'); // Тип приобретаемого продукта
-            const title = 'test'; // Название платежа
+            const title = 'Приобритение подписки ' + purchasedProduct; // Название платежа
 
             // Проверяем наличие всех необходимых данных
             if (!userId || !amount || !purchasedProduct || !title) {

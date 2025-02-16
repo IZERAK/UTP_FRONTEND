@@ -5,6 +5,7 @@ import { IMaskInput } from 'react-imask';
 import { getTrainerById, updateTrainer } from '../services/trainerService';
 import { getUserById, updateUser } from '../services/userService';
 import SettingsClients from '../components/SettingsClients';
+import PaymentHistory from '../components/PaymentHistory';
 
 const TrainerProfile = () => {
   const [value, setValue] = useState(0);
@@ -172,6 +173,7 @@ try {
         <Tabs value={value} onChange={handleTabChange} aria-label="profile tabs">
           <Tab label="Мои данные" icon={<AccountCircle />} />
           <Tab label="Настройки" icon={<Settings />} />
+          <Tab label="История платехей" icon={<Settings />} />
         </Tabs>
       </Box>
       <Box sx={{ marginTop: '64px' }}> {/* Отступ для фиксированной панели */}
@@ -322,6 +324,10 @@ try {
         <TabPanel value={value} index={1}>
           <Typography variant="h6" gutterBottom>Настройки</Typography>
           <SettingsClients />
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          <Typography variant="h6" gutterBottom>История платехей</Typography>
+          <PaymentHistory />
         </TabPanel>
       </Box>
     </Container>

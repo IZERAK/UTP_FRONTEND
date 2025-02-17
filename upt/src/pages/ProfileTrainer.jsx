@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Tab, Tabs, Box, TextField, Typography, InputAdornment, Avatar, Button, MenuItem } from '@mui/material';
-import { AccountCircle, Settings, Email, Face, Height, MonitorWeight, Phone, Accessibility, Straighten, Star, Description, Payment  } from '@mui/icons-material'; // Add Star and Description imports here
+import { Container, Grid, Tab, Tabs, Box, TextField, Typography, InputAdornment, Avatar, Button, MenuItem, Rating } from '@mui/material';
+import { AccountCircle, Settings, Email, Face, Phone, Accessibility, Straighten, Star, Description, Payment } from '@mui/icons-material';
 import { IMaskInput } from 'react-imask';
 import { getTrainerById, updateTrainer } from '../services/trainerService';
 import { getUserById, updateUser } from '../services/userService';
+import { getTrainerFeedbacks } from '../services/feedbackService';
 import SettingsClients from '../components/SettingsClients';
 import PaymentHistory from '../components/PaymentHistory';
 
@@ -29,50 +30,60 @@ const TrainerProfile = () => {
     description: '',
     rating: 0,
   });
-  const [loading, setLoading] = useState(true); // Состояние загрузки данных
-  const [error, setError] = useState(null); // Состояние ошибки
-  const [isEditing, setIsEditing] = useState(false); // Состояние редактирования
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    // Получаем ID текущего пользователя из localStorage
     const trainerId = localStorage.getItem('id_trainer');
     const userId = localStorage.getItem('id_user');
-    if (trainerId) {
-        Promise.all([getUserById(userId), getTrainerById(trainerId)])
-                .then(([userResponse, trainerResponse]) => {
-                  const user = userResponse;
-                  const trainer = trainerResponse;
-                  
-                  setUserData({
-                    id: user.id,
-                    name: user.name,
-                    phone: user.phoneNumber,
-                    email: user.emailAddress,
-                    gender: user.gender,
-                    avatarUrl: user.avatar,
-                    cityId: user.city.id,
-                    isNotificationEnable: user.isNotificationEnable,
-                    isEmailNotificationEnable: user.isEmailNotificationEnable,
-                    experience: trainer.experience,
-                    medicGrade: trainer.medicGrade,
-                    workInjuries: trainer.workInjuries,
-                    workSportsmens: trainer.workSportsmens,
-                    trainingPrograms: trainer.trainingPrograms,
-                    gymId: trainer.gymId,
-                    description: trainer.description,
-                    rating: trainer.rating,
-                    clientsIds: trainer.clients
-                  });
-                  setLoading(false);
-                })
-                .catch(error => {
-                  console.error('Ошибка при загрузке данных:', error);
-                  setError('Не удалось загрузить данные профиля.');
-                  setLoading(false);
-                });
-      // Загрузка данных с API
     
-    } else {
+    const loadData = async () => {
+      try {
+        if (trainerId) {
+          const [userResponse, trainerResponse, reviewsResponse] = await Promise.all([
+            getUserById(userId),
+            getTrainerById(trainerId),
+            getTrainerFeedbacks(trainerId)
+          ]);
+
+          const user = userResponse;
+          const trainer = trainerResponse;
+
+          setUserData({
+            id: user.id,
+            name: user.name,
+            phone: user.phoneNumber,
+            email: user.emailAddress,
+            gender: user.gender,
+            avatarUrl: user.avatar,
+            cityId: user.city?.id || 0,
+            isNotificationEnable: user.isNotificationEnable,
+            isEmailNotificationEnable: user.isEmailNotificationEnable,
+            experience: trainer.experience,
+            medicGrade: trainer.medicGrade,
+            workInjuries: trainer.workInjuries,
+            workSportsmens: trainer.workSportsmens,
+            trainingPrograms: trainer.trainingPrograms,
+            gymId: trainer.gymId,
+            description: trainer.description,
+            rating: trainer.rating,
+            clientsIds: trainer.clients
+          });
+
+          setReviews(reviewsResponse);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        setError('Не удалось загрузить данные профиля.');
+        setLoading(false);
+      }
+    };
+
+    if (trainerId) loadData();
+    else {
       setError('ID тренера не найден.');
       setLoading(false);
     }
@@ -159,16 +170,70 @@ try {
     }
   };
 
-  if (loading) {
-    return <div>Загрузка...</div>;
-  }
+  const renderReviews = () => (
+    <Grid item xs={12}>
+      <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+        Отзывы клиентов
+      </Typography>
+      {reviews.length === 0 ? (
+        <Typography variant="body1" color="textSecondary">
+          Отзывов пока нет
+        </Typography>
+      ) : (
+        reviews.map((review) => (
+          <Box 
+            key={review.id}
+            sx={{
+              mb: 3,
+              p: 2,
+              border: '1px solid #e0e0e0',
+              borderRadius: 2,
+              backgroundColor: '#fafafa'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Avatar 
+                src={review.creator?.user?.avatar} 
+                sx={{ width: 40, height: 40, mr: 2 }}
+              />
+              <Typography variant="subtitle1">
+                {review.creator?.user?.name || 'Анонимный пользователь'}
+              </Typography>
+            </Box>
+            
+            <Rating
+              value={review.rating}
+              precision={0.5}
+              readOnly
+              sx={{ mb: 1 }}
+            />
+            
+            <Typography variant="body1" paragraph>
+              {review.text}
+            </Typography>
+            
+            <Typography variant="caption" color="textSecondary">
+              {new Date(review.date).toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </Typography>
+          </Box>
+        ))
+      )}
+    </Grid>
+  );
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+  if (loading) return <div>Загрузка...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <Container>
+    <Container sx={{ 
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       <Box sx={{ borderBottom: 1, padding: 5, paddingTop: 8, borderColor: 'divider', position: 'sticky', top: 0, zIndex: 1 }}>
         <Tabs value={value} onChange={handleTabChange} aria-label="profile tabs">
           <Tab label="Мои данные" icon={<AccountCircle />} />
@@ -176,7 +241,7 @@ try {
           <Tab label="История платежей" icon={<Payment  />} />
         </Tabs>
       </Box>
-      <Box sx={{ marginTop: '64px' }}> {/* Отступ для фиксированной панели */}
+      <Box sx={{ marginTop: '0px' }}> {/* Отступ для фиксированной панели */}
         <TabPanel value={value} index={0}>
           <Typography variant="h6" gutterBottom>Мои данные</Typography>
           <Grid container spacing={2}>
@@ -319,6 +384,8 @@ try {
                 <Button variant="contained" onClick={toggleEditMode}>Редактировать</Button>
               )}
             </Grid>
+
+            {renderReviews()}
           </Grid>
         </TabPanel>
         <TabPanel value={value} index={1}>

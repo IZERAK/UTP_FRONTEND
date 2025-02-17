@@ -82,10 +82,12 @@ function NewsPage() {
     }
   };
 
-  const filteredNews = newsData.filter((news) => {
+  const filteredNews = newsData
+  .filter((news) => {
     const date = new Date(news.creationDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
     if (currentTab === 'today') {
       return date.toDateString() === today.toDateString();
     } else if (currentTab === 'week') {
@@ -100,7 +102,8 @@ function NewsPage() {
       return date >= startOfMonth && date <= endOfMonth;
     }
     return false;
-  });
+  })
+  .sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
 
   const handleChangeTab = (event, newValue) => setCurrentTab(newValue);
 

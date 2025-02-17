@@ -130,10 +130,10 @@ const handleDelete = async () => { // Добавляем async
 
   return (
     <Container>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3, width:400}}>
 
         {/* Переключатель "Уведомления" */}
-        <Grid container spacing={2} alignItems="center">
+        <Grid container spacing={2} display={'flex'}>
           <Grid item xs={12} sm={6}>
             <FormControlLabel
               control={

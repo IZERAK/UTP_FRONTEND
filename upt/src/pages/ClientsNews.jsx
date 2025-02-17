@@ -107,7 +107,7 @@ function NewsPage() {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Титульник */}
-      <Box sx={{ p: 2, position: 'sticky', top: 50, zIndex: 10 }}>
+      <Box sx={{ p: 2, position: 'sticky', top: 50, zIndex: 10, mb:'20px'}}>
         <Typography variant="h4" align="center">
           Новости
         </Typography>

@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { getGenders } from '../services/infrastructureService.js';
 import { getUserByEmail, updateUser } from '../services/userService.js';
-import { createClient, updateClient } from '../services/clientService.js';
+import { createClient, updateClient,getClientByUserId } from '../services/clientService.js';
 import { getAllCities } from '../services/cityService.js';
 import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
@@ -132,6 +132,9 @@ const ClientInfo = () => {
 
             // Вызываем метод addClient для создания клиента
             await createClient(clientData);
+            const id = localStorage.getItem('id_user');
+            const client = await getClientByUserId(id);
+            localStorage.setItem('id_client',client.id);
             navigate('/client_main')
 
             showSnackbar('Данные успешно обновлены и клиент добавлен!', 'success');

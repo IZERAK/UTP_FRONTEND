@@ -173,7 +173,7 @@ try {
         <Tabs value={value} onChange={handleTabChange} aria-label="profile tabs">
           <Tab label="Мои данные" icon={<AccountCircle />} />
           <Tab label="Настройки" icon={<Settings />} />
-          <Tab label="История платехей" icon={<Settings />} />
+          <Tab label="История платежей" icon={<Settings />} />
         </Tabs>
       </Box>
       <Box sx={{ marginTop: '64px' }}> {/* Отступ для фиксированной панели */}
@@ -273,7 +273,7 @@ try {
                     </InputAdornment>
                   ),
                 }}
-                disabled={!isEditing}
+                disabled
               />
             </Grid>
             <Grid item xs={12}>
@@ -326,7 +326,7 @@ try {
           <SettingsClients />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Typography variant="h6" gutterBottom>История платехей</Typography>
+          <Typography variant="h6" gutterBottom>История платежей</Typography>
           <PaymentHistory />
         </TabPanel>
       </Box>

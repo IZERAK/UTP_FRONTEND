@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Auth from './pages/Auth';
 import Register from './pages/Register';
 import Role from './pages/Role';
-import ClientInfoAddPage from './pages/ClientInfoAdd'; 
 
 import ChoosePlan from './pages/ChoosePlan';
 import Pay from './pages/Pay';
@@ -17,7 +16,7 @@ import ProfileTrainer from './pages/ProfileTrainer';
 import EventsPage from './pages/Events';
 import ProgramSelection from './pages/ProgramsSelection';
 import ProgramInfo from './pages/ProgramInfo';
-import MyClients from './pages/MyClients';
+import MyClients from './pages/TrainerSend';
 import ForgotPassword from './pages/ForgotPassword';
 import ProgramsSelectionTrainer from './pages/ProgramsSelectionTrainer'
 
@@ -26,7 +25,7 @@ import ClientMain from './pages/ClientsMain'
 import ClientNews from './pages/ClientsNews';
 import ClientGoal from './pages/ClientGoal';
 import ClientListGym from './pages/ClientListGym';
-import ClientsTrainerPage from './pages/ClientTrainerPage';
+import ClientsTrainerPage from './pages/ClientSend';
 import ClientProfile from './pages/ClientProfile';
 import ClientTarinerProfile from './pages/ClientTrainerProfile';
 import ClientMap from './pages/ClinetMap';
@@ -43,7 +42,6 @@ function App() {
         <Route path="/choose_plan" element={<ChoosePlan />} />
         <Route path="/pay" element={<Pay />} />
         <Route path="/trainer_info_add" element={<TrainerInfo />} />
-        <Route path="/client_info_add" element={<ClientInfoAddPage />} />
         <Route path="/forgot_password" element={<ForgotPassword/>}/>
         <Route path="/programs_selection" element={<ProgramsSelectionTrainer />} />
         <Route path="/map" element={<MapPage />} />

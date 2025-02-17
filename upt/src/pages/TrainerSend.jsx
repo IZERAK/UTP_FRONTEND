@@ -15,8 +15,43 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { getClients } from '../services/clientService';
 import { getTrainerById } from '../services/trainerService';
 import { chatGetHistory, chatAddMsg } from '../services/chatService';
+import { HubConnectionBuilder } from "@microsoft/signalr";
+
+
 
 function ClientsPage() {
+
+    const joinChat = async (userName, chatRoom) => {
+        var connection = new HubConnectionBuilder()
+            .withUrl("http://localhost:7146/chat")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveMessage", (userName, message) => {
+            setMessage((messages) => [...messages, { userName, message }]);
+        });
+
+        try {
+            await connection.start();
+            await connection.invoke("JoinChat", { userName, chatRoom });
+
+            setConnection(connection);
+            setChatRoom(chatRoom);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const sendMessage = async (message) => {
+        await connection.invoke("SendMessage", message);
+    };
+
+    const closeChat = async () => {
+        await connection.stop();
+        setConnection(null);
+    };
+
+
     const [clients, setClients] = useState([]);
     const [openChats, setOpenChats] = useState({});
     const [loading, setLoading] = useState(true);
@@ -24,6 +59,10 @@ function ClientsPage() {
     const [message, setMessage] = useState('');
     const [chatHistory, setChatHistory] = useState({});
     const [trainer, setTrainer] = useState(null);
+    const [connection, setConnection] = useState(null);
+    const [chatRoom, setChatRoom] = useState([]);
+
+
 
     useEffect(() => {
         const trainerId = localStorage.getItem('id_trainer');
@@ -61,6 +100,7 @@ function ClientsPage() {
         // Если чат уже открыт, закрываем его
         if (openChats[clientId]) {
             setOpenChats((prev) => ({ ...prev, [clientId]: false }));
+            closeChat();
             setMessage('');
             return;
         }
@@ -71,6 +111,7 @@ function ClientsPage() {
             if (history && history.length > 0) {
                 // Сохраняем историю чата
                 setChatHistory((prev) => ({ ...prev, [clientId]: history }));
+                joinChat('', `${clientId}_${localStorage.getItem('id_trainer')}`)
             }
             // Открываем чат
             setOpenChats((prev) => ({ ...prev, [clientId]: true }));

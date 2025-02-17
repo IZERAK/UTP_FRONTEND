@@ -150,7 +150,7 @@ function ClientsPage() {
         try {
             // Отправляем сообщение
             const newMessage = {
-                senderId: trainer.id,
+                senderId: localStorage.getItem('id_user'),
                 recipientId: clientUserId,
                 message: message.trim(),
             };

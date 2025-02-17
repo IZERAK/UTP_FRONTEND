@@ -135,7 +135,6 @@ function MainTrainer() {
     // Список пунктов меню с иконками
     const menuItems = [
         { id: 'news', text: 'Новости', path: 'news', icon: <HomeIcon /> },
-        { id: 'programs', text: 'Программы', path: 'programs', icon: <FitnessCenterIcon /> },
         { id: 'profile', text: 'Профиль', path: 'profile', icon: <PersonIcon /> },
     ];
 

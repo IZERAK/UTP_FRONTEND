@@ -119,10 +119,14 @@ const ClientMain = () => {
 
             {/* Диалоговое окно для уведомлений */}
             <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-                <DialogTitle>Уведомления</DialogTitle>
-                <DialogContent>
+                <Box display={'flex'} justifyContent={'flex-end'} >
+                    <Button onClick={handleCloseDialog} sx={{fontSize:24}} color="primary">
+                    ⨉
+                    </Button>
+                </Box>
+                <DialogContent sx={{mb:5}}>
                     {notifications.length === 0 ? ( // Проверяем, есть ли клиенты
-                        <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+                        <Typography variant="h6" align="center" sx={{ mt: 2, width: 250 }}>
                             Уведомлений нет
                         </Typography>
                     ) : (
@@ -136,11 +140,6 @@ const ClientMain = () => {
                         </List>
                     )}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary">
-                        Закрыть
-                    </Button>
-                </DialogActions>
             </Dialog>
         </Box>
     );

@@ -267,47 +267,104 @@ const ClientGoal = () => {
                             key={goal.id}
                             sx={{
                                 mb: 2,
-                                boxShadow: 1,
+                                boxShadow: 3,
                                 borderRadius: 2,
                                 bgcolor: 'background.paper',
+                                transition: 'transform 0.2s',
+                                '&:hover': {
+                                    transform: 'scale(1.02)',
+                                    boxShadow: 6
+                                }
                             }}
                         >
-                            <ListItemText
-                                primary={formatGoalType(goal.goalTrainingProgram)}
-                                secondary={
-                                    <span>
-                                        Срок: {formatDuration(goal.deadlineForResult)}, <br/>
-                                        Дни: {formatDays(goal.daysOfWeekForTraining)},<br/>
-                                        Время: {formatTime(goal.timeForTraining)},<br/>
-                                        Травмы: {goal.hasInjuries ? 'Да' : 'Нет'},<br/>
-                                        Вес: {goal.currentWeight}кг → {goal.desiredWeight}кг<br/>
-                                    </span>
-                                }
-                            />
-                            <ListItemSecondaryAction>
-                                <IconButton
-                                    edge="end"
-                                    aria-label="delete"
-                                    color='error'
-                                    onClick={() => handleRemoveGoal(goal.id)}
-                                >
-                                    <DeleteIcon />
-                                </IconButton>
-                            </ListItemSecondaryAction>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid item xs={2}>
+                                    <Box sx={{
+                                        bgcolor: '#1976d2',
+                                        color: 'white',
+                                        borderRadius: 1,
+                                        p: 1,
+                                        textAlign: 'center'
+                                    }}>
+                                        <Typography variant="subtitle2">
+                                            {formatDuration(goal.deadlineForResult)}
+                                        </Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={8}>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="h6" color="primary">
+                                                {formatGoalType(goal.goalTrainingProgram)}
+                                            </Typography>
+                                        }
+                                        secondary={
+                                            <Stack spacing={0.5}>
+                                                <Typography variant="body2">
+                                                    📅 Дни: {formatDays(goal.daysOfWeekForTraining)}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    ⏰ Время: {formatTime(goal.timeForTraining)}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                    🏥 Травмы: {goal.hasInjuries ? 'Да' : 'Нет'}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Chip 
+                                                        label={`${goal.currentWeight} кг`} 
+                                                        color="default" 
+                                                        size="small"
+                                                    />
+                                                    <ArrowForward color="action" />
+                                                    <Chip 
+                                                        label={`${goal.desiredWeight} кг`} 
+                                                        color="primary" 
+                                                        size="small"
+                                                    />
+                                                </Box>
+                                            </Stack>
+                                        }
+                                    />
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <IconButton
+                                        edge="end"
+                                        aria-label="delete"
+                                        color='error'
+                                        onClick={() => handleRemoveGoal(goal.id)}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Grid>
+                            </Grid>
                         </ListItem>
                     ))}
                 </List>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        endIcon={<ArrowForward />}
-                        onClick={handleOpenModal}
-                    >
-                        Новая цель
-                    </Button>
-                </Box>
+                {goals.length === 0 && (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        mt: 2,
+                        animation: 'pulse 2s infinite'
+                    }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<ArrowBack />}
+                            endIcon={<ArrowForward />}
+                            onClick={handleOpenModal}
+                            sx={{
+                                borderRadius: 5,
+                                py: 1.5,
+                                px: 4,
+                                fontSize: '1.1rem'
+                            }}
+                        >
+                            Новая цель
+                        </Button>
+                    </Box>
+                )}
             </Stack>
         </Box>
     );

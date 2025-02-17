@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Tab, Tabs, Box, TextField, Typography, InputAdornment, Avatar, Button, MenuItem } from '@mui/material';
-import { AccountCircle, Settings, Email, Face, Height, MonitorWeight, Phone, Accessibility, Straighten, Star, Description } from '@mui/icons-material'; // Add Star and Description imports here
+import { AccountCircle, Settings, Email, Face, Height, MonitorWeight, Phone, Accessibility, Straighten, Star, Description, Payment  } from '@mui/icons-material'; // Add Star and Description imports here
 import { IMaskInput } from 'react-imask';
 import { getTrainerById, updateTrainer } from '../services/trainerService';
 import { getUserById, updateUser } from '../services/userService';
@@ -173,7 +173,7 @@ try {
         <Tabs value={value} onChange={handleTabChange} aria-label="profile tabs">
           <Tab label="Мои данные" icon={<AccountCircle />} />
           <Tab label="Настройки" icon={<Settings />} />
-          <Tab label="История платежей" icon={<Settings />} />
+          <Tab label="История платежей" icon={<Payment  />} />
         </Tabs>
       </Box>
       <Box sx={{ marginTop: '64px' }}> {/* Отступ для фиксированной панели */}

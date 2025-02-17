@@ -17,7 +17,7 @@ import { Notifications, MailOutline } from '@mui/icons-material';
 import { getUserById, updateUser, deleteUser } from '../services/userService';
 
 const SettingsClients = () => {
-    const navigate = useNavigate(); // Хук для навигации
+  const navigate = useNavigate(); // Хук для навигации
   const [notifications, setNotifications] = useState(false);
   const [newsletter, setNewsletter] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -130,11 +130,25 @@ const handleDelete = async () => { // Добавляем async
 
   return (
     <Container>
-      <Box sx={{ p: 3, width:400}}>
+      <Box sx={{ 
+        p: 3, 
+        width: 400,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center', // Центрирование по горизонтали
+      }}>
 
         {/* Переключатель "Уведомления" */}
-        <Grid container spacing={2} display={'flex'}>
-          <Grid item xs={12} sm={6}>
+        <Grid 
+          container 
+          spacing={2} 
+          sx={{
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Grid item xs={8} sm={6}>
             <FormControlLabel
               control={
                 <Switch
@@ -146,14 +160,22 @@ const handleDelete = async () => { // Добавляем async
               label="Уведомления"
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={4} sm={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Notifications color="primary" />
           </Grid>
         </Grid>
 
         {/* Переключатель "Рассылка на почту" */}
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6}>
+        <Grid 
+          container 
+          spacing={2} 
+          sx={{
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Grid item xs={8} sm={6}>
             <FormControlLabel
               control={
                 <Switch
@@ -165,15 +187,27 @@ const handleDelete = async () => { // Добавляем async
               label="Рассылка на почту"
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={4} sm={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <MailOutline color="primary" />
           </Grid>
         </Grid>                
 
       {/* Сменить тариф */}
       {localStorage.getItem('id_trainer') && (
-        <Box sx={{ mt: 3 }}>
-              <Button onClick={handlePlan} variant="contained" fullWidth sx={{ backgroundColor: '#1976d2', color: 'white' }}>
+        <Box sx={{ 
+          mt: 3,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+              <Button 
+                onClick={handlePlan} 
+                variant="contained" 
+                sx={{ 
+                  backgroundColor: '#1976d2', 
+                  color: 'white',
+                  width: '80%'
+                }}>
                   Сменить тариф
               </Button>
           </Box>
@@ -181,11 +215,16 @@ const handleDelete = async () => { // Добавляем async
       
 
         {/* Кнопка для удаления аккаунта */}
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ 
+          mt: 3,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
           <Button
             variant="contained"
             color="error"
-            fullWidth
+            sx={{ width: '80%' }}
             onClick={handleOpenDialog}
           >
             Удалить аккаунт
@@ -198,17 +237,27 @@ const handleDelete = async () => { // Добавляем async
         open={openDialog}
         onClose={handleCloseDialog}
       >
-        <DialogTitle>Удалить аккаунт</DialogTitle>
+        <DialogTitle sx={{ textAlign: 'center' }}>Удалить аккаунт</DialogTitle>
         <DialogContent>
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{ textAlign: 'center' }}>
             Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button 
+            onClick={handleCloseDialog} 
+            color="primary"
+            variant="outlined"
+            sx={{ mx: 1 }}
+          >
             Отменить
           </Button>
-          <Button onClick={handleDelete} color="error">
+          <Button 
+            onClick={handleDelete} 
+            color="error"
+            variant="contained"
+            sx={{ mx: 1 }}
+          >
             Удалить
           </Button>
         </DialogActions>

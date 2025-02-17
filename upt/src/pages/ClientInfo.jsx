@@ -135,7 +135,7 @@ const ClientInfo = () => {
             const id = localStorage.getItem('id_user');
             const client = await getClientByUserId(id);
             localStorage.setItem('id_client',client.id);
-            navigate('/client_main')
+            navigate('/client_main/profile')
 
             showSnackbar('Данные успешно обновлены и клиент добавлен!', 'success');
         } catch (error) {

@@ -223,6 +223,9 @@ function ClientsPage() {
                                     <Typography variant="body2" color="textSecondary">
                                         Опыт: {trainer.experience} лет
                                     </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        Рейтинг: <strong>{trainer.rating}</strong>
+                                    </Typography>
                                 </Box>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 2 }}>

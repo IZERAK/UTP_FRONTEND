@@ -44,10 +44,7 @@ function TrainerInfo() {
 
                 const user = await getUserByEmail(userEmail);
                 setUserData(user);
-
-
-
-
+                
                 const gendersData = await getGenders();
                 setGenders(transformGenders(gendersData));
 

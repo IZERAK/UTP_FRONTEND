@@ -307,7 +307,7 @@ const ClientGoal = () => {
                                                     ⏰ Время: {formatTime(goal.timeForTraining)}
                                                 </Typography>
                                                 <Typography variant="body2">
-                                                    🏥 Травмы: {goal.hasInjuries ? 'Да' : 'Нет'}
+                                                    🎯 Тип программы: {formatGoalType(goal.goalTrainingProgram ?? goal.trainingProgram)}
                                                 </Typography>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <Chip 
@@ -351,8 +351,6 @@ const ClientGoal = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            startIcon={<ArrowBack />}
-                            endIcon={<ArrowForward />}
                             onClick={handleOpenModal}
                             sx={{
                                 borderRadius: 5,
@@ -361,7 +359,7 @@ const ClientGoal = () => {
                                 fontSize: '1.1rem'
                             }}
                         >
-                            Новая цель
+                            Добавить цель
                         </Button>
                     </Box>
                 )}

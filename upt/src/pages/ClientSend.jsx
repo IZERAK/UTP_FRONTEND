@@ -20,48 +20,11 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { getTrainers, getClientTrainer, getFilteredTrainers } from '../services/trainerService.js';
-import { createClient, updateClient } from '../services/clientService.js';
 import { setClientsToTrainer } from '../services/trainerService.js';
-import { chatGetHistory, chatAddMsg } from '../services/chatService.js'; // Импортируем метод для получения истории чата
+import { chatGetHistory, chatAddMsg } from '../services/chatService.js';
 import { HubConnectionBuilder } from "@microsoft/signalr";
 
-
-
 function ClientsPage() {
-
-    const joinChat = async (userName, chatRoom) => {
-        
-        var connection = new HubConnectionBuilder()
-            .withUrl("https://localhost:7146/chat")
-            .withAutomaticReconnect()
-            .build();
-
-        connection.on("ReceiveMessage", (userName, message) => {
-            setMessage((messages) => [...messages, { userName, message }]);
-        });
-
-        try {
-            await connection.start();
-            await connection.invoke("JoinChat", { userName, chatRoom });
-
-            setConnection(connection);
-            setChatRoom(chatRoom);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const sendMessage = async (message) => {
-        debugger
-        await connection.invoke("SendMessage", message.message);
-    };
-
-    const closeChat = async () => {
-        await connection.stop();
-        setConnection(null);
-    };
-
-
     const [allTrainers, setAllTrainers] = useState([]);
     const [filteredTrainers, setFilteredTrainers] = useState([]);
     const [myTrainer, setMyTrainer] = useState(null);
@@ -75,54 +38,90 @@ function ClientsPage() {
     const [tabValue, setTabValue] = useState(0);
     const [selectedProgram, setSelectedProgram] = useState('');
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-    const [currentClientId, setCurrentClientId] = useState(null);
     const [message, setMessage] = useState('');
     const [chatHistory, setChatHistory] = useState({});
     const [connection, setConnection] = useState(null);
-    const [chatRoom, setChatRoom] = useState([]);
+    const [chatRoom, setChatRoom] = useState('');
 
+    const joinChat = async (userName, trainerId, clientUserId, chatRoom) => {
+        const newConnection = new HubConnectionBuilder()
+            .withUrl("https://localhost:7146/chat")
+            .withAutomaticReconnect()
+            .build();
 
-    // Загрузка всех тренеров
-    useEffect(() => {
-        getTrainers()
-            .then(data => {
-                setAllTrainers(data);
-                setLoading(prev => ({ ...prev, all: false }));
-            })
-            .catch(error => {
-                setError(error.message);
-                setLoading(prev => ({ ...prev, all: false }));
-            });
-
-
-        setSelectedProgram("CorrectionAndWeightLoss");
-        fetchFilteredTrainers(selectedProgram);
-    }, []);
-
-    // Загрузка моего тренера
-    useEffect(() => {
-        getClientTrainer(localStorage.getItem("id_client"))
-            .then(data => {
-                setMyTrainer(data);
-                setLoading(prev => ({ ...prev, myTrainer: false }));
-            })
-            .catch(error => {
-                setError(error.message);
-                setLoading(prev => ({ ...prev, myTrainer: false }));
-            });
-    }, []);
-
-    // Загрузка отфильтрованных тренеров
-    const fetchFilteredTrainers = async (program) => {
-        setLoading(prev => ({ ...prev, filtered: true }));
+        newConnection.on("ReceiveMessage", (senderUserName, messageText) => {
+            const isTrainer = senderUserName === userName;
+            const senderId = isTrainer ? localStorage.getItem('id_user') : clientUserId;
+            
+            setChatHistory(prev => ({
+                ...prev,
+                [trainerId]: [...(prev[trainerId] || []), {
+                    senderId,
+                    message: messageText,
+                    time: new Date().toISOString()
+                }]
+            }));
+        });
 
         try {
-            const response = await getFilteredTrainers({
-                request: {
-                    goalTrainingProgram: program
-                }
-            });
+            await newConnection.start();
+            await newConnection.invoke("JoinChat", { userName, chatRoom });
+            setConnection(newConnection);
+            setChatRoom(chatRoom);
+        } catch (error) {
+            console.error('Ошибка подключения к чату:', error);
+        }
+    };
 
+    const sendMessage = async (messageText) => {
+        if (!connection) {
+            console.error('Нет активного подключения');
+            return;
+        }
+        try {
+            await connection.invoke("SendMessage", messageText);
+        } catch (error) {
+            console.error('Ошибка отправки сообщения:', error);
+        }
+    };
+
+    const closeChat = async () => {
+        if (connection) {
+            await connection.stop();
+            setConnection(null);
+            setChatRoom('');
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const trainersData = await getTrainers();
+                setAllTrainers(trainersData);
+                
+                const clientId = localStorage.getItem("id_client");
+                if (clientId) {
+                    const myTrainerData = await getClientTrainer(clientId);
+                    setMyTrainer(myTrainerData);
+                }
+                
+                setLoading({ all: false, filtered: false, myTrainer: false });
+            } catch (error) {
+                setError(error.message);
+                setLoading({ all: false, filtered: false, myTrainer: false });
+            }
+        };
+        
+        fetchData();
+        setSelectedProgram("CorrectionAndWeightLoss");
+    }, []);
+
+    const fetchFilteredTrainers = async (program) => {
+        setLoading(prev => ({ ...prev, filtered: true }));
+        try {
+            const response = await getFilteredTrainers({
+                request: { goalTrainingProgram: program }
+            });
             setFilteredTrainers(response);
         } catch (error) {
             setError(error.message);
@@ -131,58 +130,45 @@ function ClientsPage() {
         }
     };
 
-    const handleChatToggle = async (trainerId, clientUserId) => {
-        // Если чат уже открыт, закрываем его
+    const handleChatToggle = async (clientName, trainerId, clientUserId) => {
         if (openChats[trainerId]) {
-            setOpenChats((prev) => ({ ...prev, [trainerId]: false }));
-            closeChat();
-            setMessage('');
+            setOpenChats(prev => ({ ...prev, [trainerId]: false }));
+            await closeChat();
             return;
         }
 
         try {
             const history = await chatGetHistory(localStorage.getItem('id_user'), clientUserId);
+            setChatHistory(prev => ({ ...prev, [trainerId]: history || [] }));
             
-            if (history && history.length > 0) {
-                setChatHistory((prev) => ({ ...prev, [trainerId]: history }));
-                joinChat('Test123',`${localStorage.getItem('id_client')}_${trainerId}`)
-
-            }
-            // Открываем чат
-            setOpenChats((prev) => ({ ...prev, [trainerId]: true }));
+            const roomName = `${localStorage.getItem('id_client')}_${trainerId}`;
+            await joinChat(clientName, trainerId, clientUserId, roomName);
+            
+            setOpenChats(prev => ({ ...prev, [trainerId]: true }));
         } catch (error) {
-            alert('Не удалось получить историю чата.');
+            alert('Ошибка загрузки истории чата');
         }
     };
 
-    const handleSendMessage = async (clientId, clientUserId) => {
+    const handleSendMessage = async (trainerId, trainerUserId) => {
         if (!message.trim()) return;
 
         try {
-            // Отправляем сообщение
             const newMessage = {
-                senderId: localStorage.getItem('id_user'),
-                recipientId: clientUserId,
+                senderId: localStorage.getItem('id_user'), // Исправлено на id_trainer
+                recipientId: trainerUserId,
                 message: message.trim(),
             };
+            
             await chatAddMsg(newMessage);
-            sendMessage(newMessage)
-
-            // Обновляем историю чата
-            const updatedHistory = [...(chatHistory[clientId] || []), { ...newMessage, time: new Date().toISOString() }];
-            setChatHistory((prev) => ({ ...prev, [clientId]: updatedHistory }));
-
-            // Очищаем поле ввода
+            await sendMessage(message.trim());
             setMessage('');
         } catch (error) {
-            alert('Не удалось отправить сообщение.');
+            alert('Ошибка отправки сообщения');
         }
     };
 
-    const handleConfirmDecrement = async () => {
-        setOpenConfirmDialog(false);
-    };
-
+    // UI Handlers
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
         if (newValue === 1) {
@@ -198,8 +184,6 @@ function ClientsPage() {
                 clientIds: [parseInt(clientId)]
             };
             const response = await setClientsToTrainer(requestData);
-
-            // Обновляем данные о моем тренере
             setMyTrainer(response);
         } catch (error) {
             alert(error.message);
@@ -223,17 +207,15 @@ function ClientsPage() {
             <List>
                 {currentData.map((trainer) => (
                     <React.Fragment key={trainer.id}>
-                        <ListItem
-                            sx={{
-                                border: '1px solid rgb(25 118 210)',
-                                p: 2,
-                                borderRadius: '20px',
-                                margin: '10px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                            }}
-                        >
+                        <ListItem sx={{
+                            border: '1px solid rgb(25 118 210)',
+                            p: 2,
+                            borderRadius: '20px',
+                            margin: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Avatar src={trainer.user?.avatar} sx={{ width: 80, height: 80, mr: 2 }} />
                                 <Box>
@@ -248,13 +230,11 @@ function ClientsPage() {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        onClick={() => handleChatToggle(trainer.id, trainer.user?.id)}
+                                        onClick={() => handleChatToggle(trainer.user.name, trainer.id, trainer.user?.id)}
                                         endIcon={openChats[trainer.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                     >
                                         Чат
                                     </Button>
-
-
                                 </Box>
                                 {tabValue !== 2 && (
                                     <Button
@@ -270,28 +250,32 @@ function ClientsPage() {
                         <Collapse in={openChats[trainer.id]}>
                             <Paper elevation={3} sx={{ mt: 1, mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 <Typography variant="h6">Чат с {trainer.user.name}</Typography>
-                                <Box sx={{ height: 150, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
-                                    {(chatHistory[trainer.id] || []).map((msg) => {
-                                        const idUser = localStorage.getItem('id_user');
-                                        const isCurrentUser = msg.senderId === parseInt(idUser, 10) || msg.senderId === idUser;
+                                <Box sx={{ 
+                                    height: 150, 
+                                    overflowY: 'auto', 
+                                    border: '1px solid #ddd', 
+                                    borderRadius: 1, 
+                                    p: 2 
+                                }}>
+                                    {(chatHistory[trainer.id] || []).map((msg, index) => {
+                                        const currentUserId = localStorage.getItem('id_user');
+                                        const isCurrentUser = msg.senderId == currentUserId;
 
                                         return (
                                             <Box
-                                                key={msg.id}
+                                                key={index}
                                                 sx={{
                                                     mb: 1,
                                                     display: 'flex',
                                                     justifyContent: isCurrentUser ? 'flex-end' : 'flex-start',
                                                 }}
                                             >
-                                                <Box
-                                                    sx={{
-                                                        p: 1,
-                                                        borderRadius: 1,
-                                                        backgroundColor: isCurrentUser ? '#e3f2fd' : '#f5f5f5',
-                                                        maxWidth: '70%',
-                                                    }}
-                                                >
+                                                <Box sx={{
+                                                    p: 1,
+                                                    borderRadius: 1,
+                                                    backgroundColor: isCurrentUser ? '#e3f2fd' : '#f5f5f5',
+                                                    maxWidth: '70%',
+                                                }}>
                                                     <Typography variant="body1" color={isCurrentUser ? 'primary' : 'textSecondary'}>
                                                         {msg.message}
                                                     </Typography>
@@ -311,6 +295,7 @@ function ClientsPage() {
                                         size="small"
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(trainer.id, trainer.user.id)}
                                     />
                                     <Button
                                         variant="contained"
@@ -357,7 +342,9 @@ function ClientsPage() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpenConfirmDialog(false)}>Отмена</Button>
-                    <Button onClick={handleConfirmDecrement} color="primary">Подтвердить</Button>
+                    <Button onClick={() => setOpenConfirmDialog(false)} color="primary">
+                        Подтвердить
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

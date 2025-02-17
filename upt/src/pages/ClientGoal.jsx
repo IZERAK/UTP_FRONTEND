@@ -300,14 +300,6 @@ const ClientGoal = () => {
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                     <Button
-                        component={RouterLink}
-                        to="/client-info"
-                        startIcon={<ArrowBack />}
-                    >
-                        Назад
-                    </Button>
-
-                    <Button
                         variant="contained"
                         color="primary"
                         endIcon={<ArrowForward />}

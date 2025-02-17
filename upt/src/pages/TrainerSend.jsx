@@ -17,41 +17,7 @@ import { getTrainerById } from '../services/trainerService';
 import { chatGetHistory, chatAddMsg } from '../services/chatService';
 import { HubConnectionBuilder } from "@microsoft/signalr";
 
-
-
 function ClientsPage() {
-
-    const joinChat = async (userName, chatRoom) => {
-        var connection = new HubConnectionBuilder()
-            .withUrl("http://localhost:7146/chat")
-            .withAutomaticReconnect()
-            .build();
-
-        connection.on("ReceiveMessage", (userName, message) => {
-            setMessage((messages) => [...messages, { userName, message }]);
-        });
-
-        try {
-            await connection.start();
-            await connection.invoke("JoinChat", { userName, chatRoom });
-
-            setConnection(connection);
-            setChatRoom(chatRoom);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const sendMessage = async (message) => {
-        await connection.invoke("SendMessage", message);
-    };
-
-    const closeChat = async () => {
-        await connection.stop();
-        setConnection(null);
-    };
-
-
     const [clients, setClients] = useState([]);
     const [openChats, setOpenChats] = useState({});
     const [loading, setLoading] = useState(true);
@@ -60,9 +26,63 @@ function ClientsPage() {
     const [chatHistory, setChatHistory] = useState({});
     const [trainer, setTrainer] = useState(null);
     const [connection, setConnection] = useState(null);
-    const [chatRoom, setChatRoom] = useState([]);
+    const [chatRoom, setChatRoom] = useState('');
 
+    const joinChat = async (userName, clientId, clientUserId, chatRoom) => {
+        const connection = new HubConnectionBuilder()
+            .withUrl("https://localhost:7146/chat")
+            .withAutomaticReconnect()
+            .build();
 
+        connection.on("ReceiveMessage", (senderUserName, messageText) => {
+            const isTrainerMessage = senderUserName === trainer?.user?.name;
+            const senderId = isTrainerMessage ? clientUserId : localStorage.getItem('id_user');
+            const newMsg = {
+                senderId: senderId,
+                message: messageText,
+                time: new Date().toISOString(),
+            };
+
+            setChatHistory((prev) => ({
+                ...prev,
+                //[clientId]: [...(prev[clientId] || []), newMsg],
+                [clientId]: [...(prev[clientId] || []), {
+                    senderId,
+                    message: messageText,
+                    time: new Date().toISOString()
+                }]
+            }));
+        });
+
+        try {
+            await connection.start();
+            await connection.invoke("JoinChat", { userName, chatRoom });
+            setConnection(connection);
+            setChatRoom(chatRoom);
+        } catch (error) {
+            console.error('Ошибка подключения к чату:', error);
+        }
+    };
+
+    const sendMessage = async (messageText) => {
+        if (!connection) {
+            console.error('Нет активного подключения');
+            return;
+        }
+        try {
+            await connection.invoke("SendMessage", messageText);
+        } catch (error) {
+            console.error('Ошибка отправки сообщения:', error);
+        }
+    };
+
+    const closeChat = async () => {
+        if (connection) {
+            await connection.stop();
+            setConnection(null);
+            setChatRoom('');
+        }
+    };
 
     useEffect(() => {
         const trainerId = localStorage.getItem('id_trainer');
@@ -72,8 +92,6 @@ function ClientsPage() {
                     setTrainer({ ...trainerData, id: trainerId });
                 })
                 .catch(() => setError('Ошибка загрузки данных тренера'));
-        } else {
-            setError('ID тренера не найден в localStorage');
         }
     }, []);
 
@@ -81,13 +99,13 @@ function ClientsPage() {
         getClients()
             .then((data) => {
                 const trainerId = localStorage.getItem('id_trainer');
-                // Фильтруем клиентов по trainerId
-                const filteredClients = data.filter((client) => client.trainerId === parseInt(trainerId, 10));
-                const clientsWithIds = filteredClients.map((client) => ({
+                const filteredClients = data.filter(client => 
+                    client.trainerId === parseInt(trainerId, 10)
+                );
+                setClients(filteredClients.map(client => ({
                     ...client,
                     userId: client.user.id,
-                }));
-                setClients(clientsWithIds);
+                })));
                 setLoading(false);
             })
             .catch((error) => {
@@ -96,27 +114,21 @@ function ClientsPage() {
             });
     }, []);
 
-    const handleChatToggle = async (clientId, clientUserId) => {
-        // Если чат уже открыт, закрываем его
+    const handleChatToggle = async (clientName, clientId, clientUserId) => {
         if (openChats[clientId]) {
-            setOpenChats((prev) => ({ ...prev, [clientId]: false }));
-            closeChat();
-            setMessage('');
+            setOpenChats(prev => ({ ...prev, [clientId]: false }));
+            await closeChat();
             return;
         }
 
         try {
-            // Получаем историю чата
             const history = await chatGetHistory(localStorage.getItem('id_user'), clientUserId);
-            if (history && history.length > 0) {
-                // Сохраняем историю чата
-                setChatHistory((prev) => ({ ...prev, [clientId]: history }));
-                joinChat('', `${clientId}_${localStorage.getItem('id_trainer')}`)
-            }
-            // Открываем чат
-            setOpenChats((prev) => ({ ...prev, [clientId]: true }));
+            setChatHistory(prev => ({ ...prev, [clientId]: history || [] }));
+            const roomName = `${clientId}_${localStorage.getItem('id_trainer')}`;
+            await joinChat(clientName, clientId, clientUserId, roomName);
+            setOpenChats(prev => ({ ...prev, [clientId]: true }));
         } catch (error) {
-            alert('Не удалось получить историю чата.');
+            alert('Не удалось загрузить историю чата');
         }
     };
 
@@ -124,41 +136,33 @@ function ClientsPage() {
         if (!message.trim()) return;
 
         try {
-            // Отправляем сообщение
             const newMessage = {
                 senderId: localStorage.getItem('id_user'),
                 recipientId: clientUserId,
                 message: message.trim(),
             };
             await chatAddMsg(newMessage);
-
-            // Обновляем историю чата
-            const updatedHistory = [...(chatHistory[clientId] || []), { ...newMessage, time: new Date().toISOString() }];
-            setChatHistory((prev) => ({ ...prev, [clientId]: updatedHistory }));
-
-            // Очищаем поле ввода
+            await sendMessage(message.trim());
             setMessage('');
         } catch (error) {
-            alert('Не удалось отправить сообщение.');
+            alert('Ошибка отправки сообщения');
         }
     };
 
-    if (loading) return <Typography>Загрузка клиентов...</Typography>;
-    if (error) return <Typography color="error">Ошибка: {error}</Typography>;
+    if (loading) return <Typography>Загрузка...</Typography>;
+    if (error) return <Typography color="error">{error}</Typography>;
 
     return (
         <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Заголовок */}
             <Box sx={{ p: 2, position: 'sticky', top: 50, zIndex: 10, backgroundColor: 'white' }}>
                 <Typography variant="h4" align="center">
                     Мои клиенты
                 </Typography>
             </Box>
 
-            {/* Список клиентов */}
             <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto' }}>
                 <Paper sx={{ p: 2, border: 'none' }}>
-                    {clients.length === 0 ? ( // Проверяем, есть ли клиенты
+                    {clients.length === 0 ? (
                         <Typography variant="h6" align="center" sx={{ mt: 2 }}>
                             Клиентов нет
                         </Typography>
@@ -189,7 +193,7 @@ function ClientsPage() {
                                         <Button
                                             variant="contained"
                                             color="primary"
-                                            onClick={() => handleChatToggle(client.id, client.userId)}
+                                            onClick={() => handleChatToggle(client.user.name, client.id, client.userId)}
                                             endIcon={openChats[client.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                         >
                                             Чат
@@ -199,27 +203,26 @@ function ClientsPage() {
                                         <Paper elevation={3} sx={{ mt: 1, mb: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                                             <Typography variant="h6">Чат с {client.user.name}</Typography>
                                             <Box sx={{ height: 150, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
-                                                {(chatHistory[client.id] || []).map((msg) => {
-                                                    const idUser = localStorage.getItem('id_user');
-                                                    const isCurrentUser = msg.senderId === parseInt(idUser, 10) || msg.senderId === idUser;
+                                                {(chatHistory[client.id] || []).map((msg, index) => {
 
+                                                    const currentUserId = localStorage.getItem('id_user');
+                                                    const isCurrentUser = msg.senderId == currentUserId;
+            
                                                     return (
                                                         <Box
-                                                            key={msg.id}
+                                                            key={index}
                                                             sx={{
                                                                 mb: 1,
                                                                 display: 'flex',
                                                                 justifyContent: isCurrentUser ? 'flex-end' : 'flex-start',
                                                             }}
                                                         >
-                                                            <Box
-                                                                sx={{
-                                                                    p: 1,
-                                                                    borderRadius: 1,
-                                                                    backgroundColor: isCurrentUser ? '#e3f2fd' : '#f5f5f5',
-                                                                    maxWidth: '70%',
-                                                                }}
-                                                            >
+                                                            <Box sx={{
+                                                                p: 1,
+                                                                borderRadius: 1,
+                                                                backgroundColor: isCurrentUser ? '#e3f2fd' : '#f5f5f5',
+                                                                maxWidth: '70%',
+                                                            }}>
                                                                 <Typography variant="body1" color={isCurrentUser ? 'primary' : 'textSecondary'}>
                                                                     {msg.message}
                                                                 </Typography>
@@ -239,6 +242,7 @@ function ClientsPage() {
                                                     size="small"
                                                     value={message}
                                                     onChange={(e) => setMessage(e.target.value)}
+                                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(client.id, client.user.id)}
                                                 />
                                                 <Button
                                                     variant="contained"
@@ -260,4 +264,4 @@ function ClientsPage() {
     );
 }
 
-export default ClientsPage; 
+export default ClientsPage;

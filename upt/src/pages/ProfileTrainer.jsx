@@ -221,26 +221,26 @@ try {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                select
-                fullWidth
-                label="Пол"
-                name="gender"
-                value={userData.gender}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Accessibility color="primary" />
-                    </InputAdornment>
-                  ),
-                }}
-                disabled={!isEditing}
-              >
-                <MenuItem value="None">None</MenuItem>
-                <MenuItem value="Male">Male</MenuItem>
-                <MenuItem value="Female">Female</MenuItem>
-              </TextField>
+            <TextField
+              select
+              fullWidth
+              label="Пол"
+              name="gender"
+              value={userData.gender}
+              onChange={handleChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Accessibility color="primary" />
+                  </InputAdornment>
+                ),
+              }}
+              disabled={!isEditing}
+            >
+              <MenuItem value="None">Не выбрано</MenuItem>
+              <MenuItem value="Male">Мужчина</MenuItem>
+              <MenuItem value="Female">Женщина</MenuItem>
+            </TextField>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField

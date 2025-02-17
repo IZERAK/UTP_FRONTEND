@@ -230,9 +230,9 @@ const ClientProfile = () => {
                 }}
                 disabled={!isEditing}
               >
-                <MenuItem value="None">None</MenuItem>
-                <MenuItem value="Male">Male</MenuItem>
-                <MenuItem value="Female">Female</MenuItem>
+              <MenuItem value="None">Не выбрано</MenuItem>
+              <MenuItem value="Male">Мужчина</MenuItem>
+              <MenuItem value="Female">Женщина</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12} sm={6}>

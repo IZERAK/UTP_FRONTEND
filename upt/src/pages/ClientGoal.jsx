@@ -219,7 +219,7 @@ const ClientGoal = () => {
                                         onChange={(e) => setHasInjuries(e.target.checked)} 
                                     />
                                 }
-                                label="Наличие травм в анамнезе"
+                                label="Наличие травм"
                             />
                         </FormGroup>
 

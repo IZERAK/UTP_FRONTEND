@@ -92,7 +92,7 @@ function ProgramsSelectionTrainer() {
         <Container maxWidth="md">
             <Box sx={{ marginTop: 4, textAlign: 'center' }}>
                 <Typography variant="h4" gutterBottom>
-                    Выберите цели
+                    Какие услуги вы можете предоставить?
                 </Typography>
                 <Grid container spacing={4} justifyContent="center">
                     {programs.map((program) => (

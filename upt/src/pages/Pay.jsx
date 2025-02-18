@@ -93,8 +93,8 @@ function PayPage() {
             >
                 {/* Банковской картой */}
                 <Box sx={{ width: '100%', mb: 4 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                        Банковской картой
+                    <Typography variant="h6" sx={{ mb: 2, textAlign:'center' }}>
+                        Оплата
                     </Typography>
                     {/* Номер карты с маской */}
                     <InputMask mask="9999 9999 9999 9999" maskChar=" " alwaysShowMask>

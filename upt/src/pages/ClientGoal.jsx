@@ -164,7 +164,7 @@ const ClientGoal = () => {
                                 <MenuItem value="CorrectionAndWeightLoss">Коррекция и снижение веса</MenuItem>
                                 <MenuItem value="MuscleGain">Набор мышечной массы</MenuItem>
                                 <MenuItem value="CompetitionsPreparation">Подготовка к соревнованиям</MenuItem>
-                                <MenuItem value="Recovery">Восстановление ОДА</MenuItem>
+                                <MenuItem value="RestorationMusculoskeletalSystem">Восстановление опорно-двигательного аппарата</MenuItem>
                             </Select>
                         </FormControl>
 
@@ -177,7 +177,7 @@ const ClientGoal = () => {
                             >
                                 <MenuItem value="Mounth3">3 месяца</MenuItem>
                                 <MenuItem value="Mounth6">6 месяцев</MenuItem>
-                                <MenuItem value="Year1">1 год</MenuItem>
+                                <MenuItem value="Mounth12">1 год</MenuItem>
                             </Select>
                         </FormControl>
 

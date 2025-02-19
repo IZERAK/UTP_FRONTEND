@@ -15,14 +15,18 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    CircularProgress
+    CircularProgress,
+    Stack,
+    Rating
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { getTrainers, getClientTrainer, getFilteredTrainers } from '../services/trainerService.js';
 import { setClientsToTrainer } from '../services/trainerService.js';
 import { chatGetHistory, chatAddMsg } from '../services/chatService.js';
+import { getTrainerFeedbacks } from '../services/feedbackService.js';
 import { HubConnectionBuilder } from "@microsoft/signalr";
+import { getAllClientGoals } from '../services/goalService';
 
 function ClientsPage() {
     const [allTrainers, setAllTrainers] = useState([]);
@@ -42,6 +46,9 @@ function ClientsPage() {
     const [chatHistory, setChatHistory] = useState({});
     const [connection, setConnection] = useState(null);
     const [chatRoom, setChatRoom] = useState('');
+    const [selectedTrainer, setSelectedTrainer] = useState(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [reviews, setReviews] = useState([]);
 
     const joinChat = async (userName, trainerId, clientUserId, chatRoom) => {
         const newConnection = new HubConnectionBuilder()
@@ -93,13 +100,24 @@ function ClientsPage() {
         }
     };
 
+    // Функция для загрузки отзывов
+    const fetchReviews = async (trainerId) => {
+        try {
+            const response = await getTrainerFeedbacks(trainerId);
+            setReviews(response);
+        } catch (error) {
+            console.error('Ошибка при загрузке отзывов:', error);
+        }
+    };
+
     useEffect(() => {
+        const clientId = localStorage.getItem("id_client");
+
         const fetchData = async () => {
             try {
                 const trainersData = await getTrainers();
                 setAllTrainers(trainersData);
                 
-                const clientId = localStorage.getItem("id_client");
                 if (clientId) {
                     const myTrainerData = await getClientTrainer(clientId);
                     setMyTrainer(myTrainerData);
@@ -112,15 +130,36 @@ function ClientsPage() {
             }
         };
         
+        fetchGoal(clientId);
         fetchData();
-        setSelectedProgram("CorrectionAndWeightLoss");
     }, []);
+
+    const fetchGoal = async (clientId) => {
+        try {
+            const response = await getAllClientGoals(clientId);
+
+            if(response[0]){
+                setSelectedProgram(response[0].goalTrainingProgram);
+            }
+            
+        } catch (error) {
+            console.error('Ошибка при загрузке отзывов:', error);
+        }
+    };
 
     const fetchFilteredTrainers = async (program) => {
         setLoading(prev => ({ ...prev, filtered: true }));
         try {
+            
+            if(program == '' || program == ' ' || program == null){
+                program = "CorrectionAndWeightLoss";
+            }
+            
+            const requestData = {
+                trainingProgram: program
+            };
             const response = await getFilteredTrainers({
-                request: { goalTrainingProgram: program }
+                request: requestData
             });
             setFilteredTrainers(response);
         } catch (error) {
@@ -190,6 +229,110 @@ function ClientsPage() {
         }
     };
 
+    // Обработчик клика на аватар
+    const handleAvatarClick = async (trainer) => {
+        setSelectedTrainer(trainer);
+        await fetchReviews(trainer.id);
+        setIsProfileModalOpen(true);
+    };
+
+    const formatGoalType = (trainingPrograms) => {
+        const goalMap = {
+            'CorrectionAndWeightLoss': 'Коррекция и снижение веса',
+            'MuscleGain': 'Набор мышечной массы',
+            'CompetitionsPreparation': 'Подготовка к соревнованиям',
+            'RestorationMusculoskeletalSystem': 'Восстановление опорно-двигательного аппарата'
+        };
+
+        if(trainingPrograms == null)
+            return "Не назначено";
+
+        let result = "";
+
+        for (let program of trainingPrograms){
+            result += goalMap[program] || program;
+            result += ", ";
+        }
+        
+        return result;
+    };
+
+    // Модальное окно профиля тренера
+    const renderProfileModal = () => (
+        <Dialog 
+            open={isProfileModalOpen} 
+            onClose={() => setIsProfileModalOpen(false)}
+            maxWidth="md"
+            fullWidth
+        >
+            <DialogTitle>Профиль тренера</DialogTitle>
+            <DialogContent dividers>
+                {selectedTrainer && (
+                    <Stack spacing={3} sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Avatar 
+                                src={selectedTrainer.user?.avatar} 
+                                sx={{ width: 120, height: 120 }}
+                            />
+                        </Box>
+                        
+                        <Typography variant="h4" align="center">
+                            {selectedTrainer.user?.name}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Rating 
+                                value={selectedTrainer.rating} 
+                                precision={0.5} 
+                                readOnly 
+                            />
+                            <Typography variant="body1">
+                                Опыт работы: {selectedTrainer.experience} лет
+                            </Typography>
+                        </Box>
+
+                        <Typography variant="body1">
+                            <strong>О себе:</strong> {selectedTrainer.description}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Методики работы:</strong> {formatGoalType(selectedTrainer.trainingPrograms)}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Контакты:</strong> {selectedTrainer.user?.phoneNumber}
+                        </Typography>
+                        <Typography variant="subtitle1" gutterBottom><strong>Отзывы:</strong></Typography>
+                        {reviews.length > 0 ? (
+                            reviews.map((review, index) => (
+                                <Box key={index} marginBottom={2}>
+                                    <Avatar 
+                                        src={review.creator.user?.avatar} 
+                                        sx={{ 
+                                            width: 50, 
+                                            height: 50, 
+                                            mr: 2,
+                                            cursor: 'pointer',
+                                            '&:hover': { transform: 'scale(1.1)' },
+                                            transition: 'transform 0.2s',
+                                        }}
+                                    />
+                                    <Typography><strong>{review.creator.user.name}: </strong>{review.text}</Typography>
+                                    <Rating name="read-only" value={review.rating} readOnly />
+                                </Box>
+                            ))
+                        ) : (
+                            <Typography>Отзывов пока нет.</Typography>
+                        )}
+                    </Stack>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setIsProfileModalOpen(false)}>Закрыть</Button>
+            </DialogActions>
+        </Dialog>
+    );
+
     const renderContent = () => {
         if (loading.all && tabValue === 0) return <CircularProgress sx={{ margin: 'auto' }} />;
         if (loading.filtered && tabValue === 1) return <CircularProgress sx={{ margin: 'auto' }} />;
@@ -217,7 +360,18 @@ function ClientsPage() {
                             justifyContent: 'space-between',
                         }}>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar src={trainer.user?.avatar} sx={{ width: 80, height: 80, mr: 2 }} />
+                            <Avatar 
+                                src={trainer.user?.avatar} 
+                                sx={{ 
+                                    width: 80, 
+                                    height: 80, 
+                                    mr: 2,
+                                    cursor: 'pointer',
+                                    '&:hover': { transform: 'scale(1.1)' },
+                                    transition: 'transform 0.2s'
+                                }}
+                                onClick={() => handleAvatarClick(trainer)}
+                            />
                                 <Box>
                                     <Typography variant="h6">{trainer.user?.name}</Typography>
                                     <Typography variant="body2" color="textSecondary">
@@ -350,6 +504,7 @@ function ClientsPage() {
                     </Button>
                 </DialogActions>
             </Dialog>
+            {renderProfileModal()}
         </Box>
     );
 }

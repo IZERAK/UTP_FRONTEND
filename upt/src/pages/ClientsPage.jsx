@@ -20,11 +20,13 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    Stack
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { getClients, getFilteredClients } from '../services/clientService';
 import { getTrainerById, decrementDialogCount } from '../services/trainerService';
+import { getAllClientGoals } from '../services/goalService';
 import { chatGetHistory, chatAddMsg } from '../services/chatService'; // Импортируем метод для получения истории чата
 
 function ClientsPage() {
@@ -39,9 +41,12 @@ function ClientsPage() {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [currentClientId, setCurrentClientId] = useState(null);
-    const [message, setMessage] = useState(''); // Состояние для текста сообщения
-    const [chatHistory, setChatHistory] = useState({}); // Состояние для истории чата
-
+    const [message, setMessage] = useState('');
+    const [chatHistory, setChatHistory] = useState({});
+    const [selectedClient, setSelectedClient] = useState(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [userGoal, setUserGoal] = useState(null);
+    
     useEffect(() => {
         const trainerId = localStorage.getItem('id_trainer');
         if (trainerId) {
@@ -183,8 +188,110 @@ function ClientsPage() {
         fetchClients();
     };
 
+    // Обработчик клика на аватар
+    const handleAvatarClick = async (client) => {
+        
+        setSelectedClient(client);
+        await fetchGoal(client.id)
+        setIsProfileModalOpen(true);
+    };
+
+    const fetchGoal = async (clientId) => {
+        try {
+            const response = await getAllClientGoals(clientId);
+
+            if(response[0]){
+                setUserGoal(response[0]);
+            }
+            
+        } catch (error) {
+            console.error('Ошибка при загрузке отзывов:', error);
+        }
+    };
+
+    const formatGoalType = (goal) => {
+
+        if(goal == null || goal == ''){
+            return "Не выбрано";
+        }
+
+        const goalMap = {
+            'CorrectionAndWeightLoss': 'Коррекция и снижение веса',
+            'MuscleGain': 'Набор мышечной массы',
+            'CompetitionsPreparation': 'Подготовка к соревнованиям',
+            'RestorationMusculoskeletalSystem': 'Восстановление опорно-двигательного аппарата'
+        };
+        return goalMap[goal] || goal;
+    };
+
     if (loading) return <Typography>Загрузка клиентов...</Typography>;
     if (error) return <Typography color="error">Ошибка: {error}</Typography>;
+
+    const renderProfileModal = () => (
+        <Dialog 
+            open={isProfileModalOpen} 
+            onClose={() => setIsProfileModalOpen(false)}
+            maxWidth="md"
+            fullWidth
+        >
+            <DialogTitle>Профиль клиента</DialogTitle>
+            <DialogContent dividers>
+                {selectedClient && (
+                    <Stack spacing={3} sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Avatar 
+                                src={selectedClient.user?.avatar} 
+                                sx={{ width: 120, height: 120 }}
+                            />
+                        </Box>
+                        
+                        <Typography variant="h4" align="center">
+                            {selectedClient.user?.name}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Рост:</strong> {selectedClient.height}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Вес:</strong> {selectedClient.weight}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Объём груди:</strong> {selectedClient.volumeBreast}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Объём живота:</strong> {selectedClient.volumeAbdomen}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Объём талии:</strong> {selectedClient.volumeWaist}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Объём ягодиц:</strong> {selectedClient.volumeButtock}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Объём бёдер:</strong> {selectedClient.volumeHip}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Контакты:</strong> {selectedClient.user?.phoneNumber}
+                        </Typography>
+
+                        <Typography variant="body1">
+                            <strong>Цель:</strong> {userGoal == null ? "Не назначена" : formatGoalType(userGoal?.goalTrainingProgram)}
+                        </Typography>
+                    </Stack>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setIsProfileModalOpen(false)}>Закрыть</Button>
+            </DialogActions>
+        </Dialog>
+    );
 
     return (
         <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -239,7 +346,15 @@ function ClientsPage() {
                                     }}
                                 >
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Avatar src={client.user.avatar} alt={client.user.name} sx={{ width: 80, height: 80, mr: 2 }} />
+                                        <Avatar src={client.user.avatar} 
+                                        alt={client.user.name} 
+                                        sx={{ width: 80, height: 80, mr: 2,
+                                        cursor: 'pointer',
+                                        '&:hover': { transform: 'scale(1.1)' },
+                                        transition: 'transform 0.2s'
+                                         }} 
+                                        onClick={() => handleAvatarClick(client)}
+                                        />
                                         <Box>
                                             <Typography variant="h6">{client.user.name}</Typography>
                                             <Typography variant="body2" color="textSecondary">
@@ -316,6 +431,7 @@ function ClientsPage() {
                     </List>
                 </Paper>
             </Box>
+            {renderProfileModal()}
         </Box>
     );
 }
